@@ -13,18 +13,14 @@
       <div class="header-actions"><a href="https://github.com/somemusic69-sudo/splice-kiroween">GitHub</a><a href="./setup.html">Local setup</a><span id="mode" class="mode live-only">Starting</span></div>
     </header>
     <section class="incident-bar demo-only" aria-labelledby="incident-title">
-      <div class="incident-copy">
-        <h2 id="incident-title">Splice helps on-call developers turn server errors into a tested fix without leaving one workspace.</h2>
-        <p>A service should wait two seconds before retrying, but it waits only two milliseconds.</p>
-        <div class="actions">
-          <button id="review-errors" class="accent" disabled>Review errors</button>
-          <button id="sample" class="quiet">Reset demo</button>
-        </div>
+      <div>
+        <h2 id="incident-title">Retry delay incident</h2>
+        <p>The worker retries before its upstream service can recover.</p>
       </div>
-      <dl class="incident-metrics" aria-label="Retry timing before the fix">
-        <div><dt>Observed delay</dt><dd>2 ms</dd></div>
-        <div><dt>Expected delay</dt><dd>2,000 ms</dd></div>
-      </dl>
+      <div class="actions">
+        <button id="review-errors" class="accent" disabled>Review errors</button>
+        <button id="sample" class="quiet">Reset demo</button>
+      </div>
     </section>
     <main class="workspace">
       <section class="pane terminal-pane" aria-labelledby="terminal-heading">
@@ -40,6 +36,18 @@
           <button id="disconnect" class="live-only" disabled>Disconnect</button>
         </div>
         <div class="checkout-bar live-only"><label for="checkout">Git checkout</label><select id="checkout"></select></div>
+        <section id="retry-timing" class="retry-timing demo-only" aria-labelledby="timing-heading">
+          <h3 id="timing-heading">Retry delay vs. upstream cooldown</h3>
+          <dl class="timing-rows">
+            <div class="timing-row"><dt id="retry-track-label">Original retry</dt><dd id="retry-track-value">2 ms</dd><span class="timing-track retry-track" aria-hidden="true"><span id="retry-marker"></span></span></div>
+            <div class="timing-row"><dt>Cooldown</dt><dd>2,000 ms</dd><span class="timing-track cooldown-track" aria-hidden="true"></span></div>
+          </dl>
+          <div class="timing-axis" aria-hidden="true"><span>0</span><span>500</span><span>1,000</span><span>1,500</span><span>2,000 ms</span></div>
+        </section>
+        <div class="replay-controls demo-only" role="group" aria-label="Recorded log run">
+          <button id="replay-before" aria-pressed="true">Original run</button>
+          <button id="replay-after" aria-pressed="false" disabled>Recovery run</button>
+        </div>
         <div id="terminal"></div>
         <footer class="terminal-footer">
           <span id="terminal-hint"></span>
@@ -68,7 +76,7 @@
               <input id="query" type="search" placeholder="Search by word or phrase" maxlength="512" spellcheck="false">
             </div>
           </div>
-          <div class="results-heading"><h3>Messages</h3><span id="log-count" role="status">0 matches</span></div>
+          <div class="results-heading"><h3>Grouped messages</h3><span id="log-count" role="status">0 matches</span></div>
           <div id="log-results" class="log-results"><p class="empty">Matching messages will appear here.</p></div>
           <div class="excerpt">
             <label id="excerpt-label" for="excerpt">Excerpt for Kiro</label>

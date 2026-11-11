@@ -49,7 +49,7 @@ Set `sshConfig` to the absolute path of a dedicated OpenSSH config or `kiroExecu
 
 ## Judge build
 
-A service should wait two seconds before retrying, but it waits only two milliseconds. Click **Review errors** to group the recorded failures and prepare an editable excerpt. **View diagnosis** shows a sample Kiro explanation and the proposed change. **Test fix** applies the bundled diff and runs the retry code in a browser worker. Use **View recovery logs** to see the recorded post-fix SSH output. [Public demo](https://somemusic69-sudo.github.io/splice-kiroween/)
+A service should wait two seconds before retrying, but it waits only two milliseconds. The timing plot puts the retry and cooldown on the same scale. Click **Review errors** to group the recorded failures and prepare an editable excerpt. **View diagnosis** shows a sample Kiro explanation and the proposed change. **Test fix** applies the bundled diff and runs the retry code in a browser worker. After it passes, switch between **Original run** and **Recovery run** to compare the recorded SSH output and timing. [Public demo](https://somemusic69-sudo.github.io/splice-kiroween/)
 
 To publish, push the repository to a public GitHub repo with a `main` branch. In **Settings → Pages**, choose **GitHub Actions** as the source and run **Publish Splice demo**. The workflow builds the static app and reports the live URL in its deployment output.
 

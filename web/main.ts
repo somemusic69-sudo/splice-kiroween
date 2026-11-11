@@ -249,20 +249,22 @@ select('checkout').onchange = () => {
   showSourceList();
 };
 terminal.onSelectionChange(() => { button('capture').disabled = !terminal.hasSelection(); });
-button('capture').onclick = () => loadLogs(terminal.getSelection(), 'Terminal selection', !live);
+button('capture').onclick = () => {
+  const originalRun = button('replay-before').getAttribute('aria-pressed') === 'true';
+  loadLogs(terminal.getSelection(), 'Terminal selection', !live && originalRun);
+};
 
 function focusTerminal() {
-  get('terminal-heading').focus();
+  if (!live) get('terminal').scrollIntoView({ block: 'nearest' });
+  get('terminal-heading').focus({ preventScroll: !live });
 }
 
 button('review-errors').onclick = () => {
-  if (!sampleInput) sample();
   select('severity').value = 'ERROR';
   input('query').value = '';
   input('pattern-mode').checked = false;
-  status('log-source', 'retry-worker.log');
   reviewFilterId = filterId + 1;
-  filter(sampleLogs);
+  loadLogs(sampleLogs, 'retry-worker.log', true);
 };
 
 function showPatch(patch?: Patch) {
@@ -311,15 +313,26 @@ function sample() {
   status('agent-status', '');
   select('severity').value = '';
   input('query').value = '';
-  terminal.reset();
-  terminal.writeln('\x1b[33m$ tmux attach -t splice\x1b[0m');
-  terminal.writeln('$ tail -n 6 /tmp/splice-retry.log');
-  for (const line of sampleLogs.split(/\r?\n/)) terminal.writeln(line);
-  terminal.writeln('\r\n$ ');
+  replaySample(false);
   loadLogs(sampleLogs, 'retry-worker.log', true);
 }
 
+function replaySample(recovery: boolean) {
+  if (recovery && !sampleVerified) return;
+  button('replay-before').setAttribute('aria-pressed', String(!recovery));
+  button('replay-after').setAttribute('aria-pressed', String(recovery));
+  button('replay-after').disabled = !sampleVerified;
+  get('retry-timing').classList.toggle('recovered', recovery);
+  get('retry-track-label').textContent = recovery ? 'Verified retry' : 'Original retry';
+  get('retry-track-value').textContent = recovery ? '2,000 ms' : '2 ms';
+  terminal.clearSelection();
+  const recording = recovery ? sampleVerification : sampleLogs;
+  terminal.write('\x1b[2J\x1b[H\x1b[3J' + recording.replace(/\r?\n/g, '\r\n') + '\r\n');
+}
+
 button('sample').onclick = sample;
+button('replay-before').onclick = () => replaySample(false);
+button('replay-after').onclick = () => replaySample(true);
 
 async function api(path: string, options: RequestInit = {}) {
   const response = await fetch('/api/' + path, {
@@ -430,9 +443,7 @@ button('apply').onclick = async () => {
       const { before, after } = await verifySample();
       result = `Test passed · ${before} ms → ${after.toLocaleString('en-US')} ms`;
       sampleVerified = true;
-      terminal.writeln('\r\n\x1b[32mPASS\x1b[0m Browser regression: ' + before + ' ms → ' + after + ' ms');
-      terminal.writeln('\r\nRecorded post-fix logs');
-      for (const line of sampleVerification.split(/\r?\n/)) terminal.writeln(line);
+      replaySample(true);
     }
     currentPatch = undefined;
     button('show-patch').hidden = true;
@@ -453,6 +464,7 @@ button('apply').onclick = async () => {
 
 button('verify-terminal').onclick = () => {
   if (live) button('powershell').click();
+  else if (button('replay-after').getAttribute('aria-pressed') !== 'true') replaySample(true);
   focusTerminal();
 };
 

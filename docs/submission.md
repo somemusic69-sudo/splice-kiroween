@@ -12,6 +12,8 @@ At 2 a.m., an on-call developer has a retry storm to investigate. Splice lets th
 
 Splice launches Kiro CLI through ACP V3 and streams the incident agent’s response into the cockpit. The tracked custom agent takes the operator’s question, log excerpt, and allowlisted source snapshots and returns a diagnosis and patch. The tracked retry incident spec defines the fixture and its regression test. In the submitted development write-up, describe the Kiro CLI development session and the outcomes actually verified.
 
+On Windows, the live run passed with a signed-in Kiro CLI. Splice captured logs from a real Linux tmux session, filtered the evidence in WASM, obtained a Kiro-generated diff, and applied it after review. The PowerShell regression passed and the reattached SSH session showed the corrected retry behavior.
+
 ## Recording outline
 
 | Time | Screen and narration |

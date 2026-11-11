@@ -2,9 +2,11 @@
 
 ## Devpost description
 
-**Splice** is a local-first incident cockpit that stitches an old-school SSH/tmux terminal, Rust WebAssembly log tools, and Kiro CLI together in one browser tab. A developer can attach to a Linux host from Windows, select server logs, and filter repeated errors locally. They review the excerpt, ask the incident agent for a diagnosis, and inspect the proposed change in a unified diff. The bridge checks the revision and file contents before applying the approved patch to the local checkout. The developer can run tests and return to the same tmux session to verify the fix.
+At 2 a.m., an on-call developer has a retry storm to investigate. Splice lets them select the evidence in an SSH/tmux terminal, group errors with browser-side Rust WebAssembly, and send a reviewed excerpt to a Kiro CLI incident agent. The agent proposes a diff, the developer reviews it, and the local bridge checks the Git revision and file contents before applying it. They run the regression in PowerShell and return to the same tmux session to verify the fix.
 
 **Category** · Frankenstein
+
+**Try it.** The public demo opens on recorded SSH logs from the retry incident. Filter for **ERROR**, use the filtered lines, review the sample diagnosis, and apply and test the sample patch. The browser runs the retry fixture and shows the delay change from **2 ms to 2,000 ms**. [Live demo](https://somemusic69-sudo.github.io/splice-kiroween/) · [Source and Windows setup](https://github.com/somemusic69-sudo/splice-kiroween)
 
 ## Kiro integration
 
@@ -20,4 +22,4 @@ Splice launches Kiro CLI through ACP V3 and streams the incident agent’s respo
 | 1:30–2:05 | Open the unified diff, apply the reviewed patch, and run the regression test from local PowerShell. |
 | 2:05–2:35 | Reattach to the same tmux session, show the corrected logs, then show the public judge demo and repo. |
 
-Before submitting, add the verified GitHub and Pages URLs and the public YouTube walkthrough to Devpost. The deadline is December 5, 2026 at 5:00 a.m. WIB. [Official rules](https://kiroween.devpost.com/rules)
+Before submitting, add the public YouTube walkthrough and the links above to Devpost. Record the Windows run with real Kiro output. The deadline is December 5, 2026 at 5:00 a.m. WIB. [Official rules](https://kiroween.devpost.com/rules)

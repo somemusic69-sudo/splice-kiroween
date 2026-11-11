@@ -5,7 +5,6 @@ test('explores a sample incident using WASM and reviews the patch', async ({ pag
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await expect(page.locator('#engine')).toHaveText('WASM ready');
-  await page.getByRole('button', { name: 'Load sample incident' }).click();
   await expect(page.locator('#log-count')).toHaveText('6 / 6 lines');
   await page.getByLabel('Severity').selectOption('ERROR');
   await expect(page.locator('#log-count')).toHaveText('3 / 6 lines');
@@ -20,9 +19,12 @@ test('explores a sample incident using WASM and reviews the patch', async ({ pag
   await page.getByRole('button', { name: 'Show sample diagnosis' }).click();
   await page.getByRole('button', { name: 'Review patch' }).click();
   await expect(page.locator('#diff')).toContainText('delaySeconds * 1000');
-  await page.getByRole('button', { name: 'Apply sample patch' }).click();
-  await expect(page.locator('#patch-status')).toContainText('Sample patch applied');
-  await expect(page.getByRole('button', { name: 'Apply sample patch' })).toBeDisabled();
+  await page.getByRole('button', { name: 'Apply and test sample patch' }).click();
+  await expect(page.locator('#patch-status')).toHaveText('Regression passed. The retry delay changed from 2 ms to 2,000 ms.');
+  await expect(page.locator('.xterm-rows')).toContainText('retry succeeded after upstream cooldown');
+  await expect(page.getByRole('button', { name: 'Apply and test sample patch' })).toBeDisabled();
+  await page.getByRole('button', { name: 'Reset sample incident' }).click();
+  await expect(page.locator('#log-count')).toHaveText('6 / 6 lines');
   await page.getByRole('link', { name: 'Local setup' }).click();
   await expect(page.getByRole('heading', { name: 'Run Splice on Windows 11' })).toBeVisible();
   expect(errors).toEqual([]);
@@ -31,6 +33,6 @@ test('explores a sample incident using WASM and reviews the patch', async ({ pag
 test('keeps the controls inside a mobile viewport', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 800 });
   await page.goto('/');
-  await expect(page.getByRole('button', { name: 'Load sample incident' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Reset sample incident' })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(375);
 });

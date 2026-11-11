@@ -49,7 +49,7 @@ Set `sshConfig` to the absolute path of a dedicated OpenSSH config or `kiroExecu
 
 ## Judge build
 
-The static build uses the same WASM worker and patch review UI as the local build. It replays SSH logs recorded from the disposable fixture before and after the patch and includes a labeled sample diagnosis. The disposable fixture is the live test path.
+The [public demo](https://somemusic69-sudo.github.io/splice-kiroween/) opens on the recorded retry incident. Filter by **ERROR**, click **Use filtered lines**, and continue to the sample diagnosis and patch. **Apply and test sample patch** applies the bundled diff in a browser worker and runs the retry code before and after the fix. It shows the recorded post-fix SSH logs once the regression passes. The disposable fixture is the live SSH and Kiro test path.
 
 To publish, push the repository to a public GitHub repo with a `main` branch. In **Settings → Pages**, choose **GitHub Actions** as the source and run **Publish Splice demo**. The workflow builds the static app and reports the live URL in its deployment output.
 

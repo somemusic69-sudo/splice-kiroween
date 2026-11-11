@@ -37,7 +37,7 @@ get('agent-description').textContent = live
   ? 'Running Kiro sends the preview and question to the Kiro service. The agent can read your selected checkout.'
   : 'Explore a sample diagnosis and patch for the retry incident.';
 button('run').textContent = live ? 'Run Kiro' : 'Show sample diagnosis';
-button('apply').textContent = live ? 'Apply patch' : 'Apply sample patch';
+button('apply').textContent = live ? 'Apply patch' : 'Apply and test sample patch';
 get('terminal-status').textContent = live ? 'Disconnected' : 'Recorded SSH logs';
 get('terminal-hint').textContent = live ? 'Select terminal output to inspect it.' : 'Disposable retry incident';
 
@@ -54,7 +54,7 @@ terminal.loadAddon(fit);
 terminal.open(get('terminal'));
 const terminalIntro = live
   ? 'Attach to an SSH target or open a local PowerShell session.'
-  : 'Load the sample incident to inspect the worker logs.';
+  : 'Load the incident to follow a retry failure from SSH logs to a tested fix.';
 terminal.writeln(terminalIntro);
 new ResizeObserver(() => fit.fit()).observe(get('terminal'));
 
@@ -223,6 +223,8 @@ function sample() {
   showPatch();
   get('response').textContent = '';
   status('agent-status', '');
+  select('severity').value = '';
+  input('query').value = '';
   terminal.reset();
   terminal.writeln('\x1b[33m$ tmux attach -t splice\x1b[0m');
   terminal.writeln('$ tail -n 6 /tmp/splice-retry.log');
@@ -260,6 +262,30 @@ function agentEvent(event: AgentEvent) {
   if (event.type === 'status') status('agent-status', event.text ?? '');
   if (event.type === 'error') status('agent-status', event.text ?? 'Kiro failed.', true);
   if (event.type === 'patch') showPatch(event.patch);
+}
+
+function verifySample() {
+  return new Promise<{ before: number; after: number }>((resolve, reject) => {
+    const verifier = new Worker(new URL('./sample-verification.ts', import.meta.url), { type: 'module' });
+    const timeout = window.setTimeout(() => {
+      verifier.terminate();
+      reject(new Error('The sample regression test timed out.'));
+    }, 5000);
+    function close() {
+      window.clearTimeout(timeout);
+      verifier.terminate();
+    }
+    verifier.onmessage = ({ data }) => {
+      close();
+      if (data.error) reject(new Error(data.error));
+      else resolve(data);
+    };
+    verifier.onerror = () => {
+      close();
+      reject(new Error('The browser could not run the sample regression test.'));
+    };
+    verifier.postMessage('verify');
+  });
 }
 
 button('run').onclick = async () => {
@@ -308,20 +334,30 @@ button('apply').onclick = async () => {
   if (!patch) return;
   button('apply').disabled = true;
   button('discard').disabled = true;
+  button('sample').disabled = true;
+  button('run').disabled = true;
   try {
+    let result = 'Patch applied to the checkout. Run your tests in PowerShell.';
     if (live) {
       await post('apply', { id: patch.id });
     } else {
+      status('patch-status', 'Applying the sample diff and running the regression test…');
+      const { before, after } = await verifySample();
+      result = `Regression passed. The retry delay changed from ${before} ms to ${after.toLocaleString('en-US')} ms.`;
+      terminal.writeln('\r\n\x1b[32mPASS\x1b[0m Browser regression: ' + before + ' ms → ' + after + ' ms');
       terminal.writeln('\r\nRecorded post-fix logs');
       for (const line of sampleVerification.split(/\r?\n/)) terminal.writeln(line);
     }
     currentPatch = undefined;
     button('show-patch').hidden = true;
-    status('patch-status', live ? 'Patch applied to the checkout. Run your tests in PowerShell.' : 'Sample patch applied. See the verification in Terminal.');
+    status('patch-status', result);
   } catch (error) {
     status('patch-status', (error as Error).message, true);
     button('apply').disabled = false;
     button('discard').disabled = false;
+  } finally {
+    button('sample').disabled = false;
+    syncRun();
   }
 };
 
@@ -405,6 +441,7 @@ async function initialize() {
   syncRun();
   if (!live) {
     fit.fit();
+    sample();
     return;
   }
   button('connect').disabled = true;

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
 import { once, EventEmitter } from 'node:events';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -8,6 +9,7 @@ import { test } from 'node:test';
 import { WebSocket } from 'ws';
 import { createBridge } from '../bridge/server.mjs';
 import { applyPatch, checkoutSnapshot, git, preparePatch } from '../bridge/git.mjs';
+import { diagnose } from '../bridge/kiro.mjs';
 
 const before = 'export const delay = (seconds) => seconds;\n';
 const after = 'export const delay = (seconds) => seconds * 1000;\n';
@@ -91,6 +93,65 @@ test('streams diagnosis, and discarding preserves the checkout', async (t) => {
   assert.equal((await post('discard', { id }, cookie)).status, 200);
   assert.equal((await post('apply', { id }, cookie)).status, 404);
   assert.equal(await readFile(join(repo.path, 'retry.mjs'), 'utf8'), before);
+});
+
+test('ACP selects the restricted incident agent and streams its response', async () => {
+  const agent = `
+    const assert = require('node:assert/strict');
+    const fs = require('node:fs');
+    const lines = require('node:readline').createInterface({ input: process.stdin });
+    const send = (data) => console.log(JSON.stringify({ jsonrpc: '2.0', ...data }));
+    let modeSelected = false;
+    let promptId;
+    lines.on('line', (line) => {
+      const { id, method, params, result } = JSON.parse(line);
+      if (method === 'initialize') send({ id, result: { protocolVersion: 1 } });
+      if (method === 'session/new') {
+        assert.equal(params.cwd, process.cwd());
+        assert.deepEqual(params.mcpServers, []);
+        const profile = JSON.parse(fs.readFileSync('.kiro/agents/splice-incident.json', 'utf8'));
+        assert.deepEqual(profile.tools, []);
+        assert.deepEqual(profile.permissions.rules, [{ capability: 'all', effect: 'deny' }]);
+        send({ id, result: { sessionId: 'test', configOptions: [
+          { id: 'mode', category: 'mode', options: [{ options: [{ value: 'splice-incident' }] }] }
+        ] } });
+      }
+      if (method === 'session/set_config_option') {
+        assert.deepEqual(params, { sessionId: 'test', configId: 'mode', value: 'splice-incident' });
+        modeSelected = true;
+        send({ id, result: { configOptions: [] } });
+      }
+      if (method === 'session/prompt') {
+        assert.ok(modeSelected);
+        assert.match(params.prompt[0].text, /reviewed evidence/);
+        assert.match(params.prompt[0].text, /retry.mjs/);
+        promptId = id;
+        send({ id: 'permission', method: 'session/request_permission', params: { sessionId: 'test' } });
+      }
+      if (id === 'permission') {
+        assert.deepEqual(result, { outcome: { outcome: 'cancelled' } });
+        send({ method: 'session/update', params: { sessionId: 'test', update: {
+          sessionUpdate: 'agent_message_chunk', content: { type: 'text', text: 'The units differ.' }
+        } } });
+        send({ id: promptId, result: { stopReason: 'end_turn' } });
+      }
+    });
+  `;
+  const events = [];
+  const answer = await diagnose({
+    snapshot: { source: new Map([['retry.mjs', { text: before }]]) },
+    excerpt: 'reviewed evidence',
+    question: 'What happened?',
+    signal: AbortSignal.timeout(8000),
+    emit: (event) => events.push(event),
+    spawnProcess: (executable, args, options) => {
+      assert.equal(executable, 'kiro-cli');
+      assert.deepEqual(args, ['acp', '--agent-engine', 'v3', '--auth-method', 'cli']);
+      return spawn(process.execPath, ['-e', agent], options);
+    },
+  });
+  assert.equal(answer, 'The units differ.');
+  assert.deepEqual(events.at(-1), { type: 'text', text: answer });
 });
 
 test('connects an authenticated terminal, forwards input and preserves the tmux name', async (t) => {

@@ -8,8 +8,8 @@ import { createInterface } from 'node:readline';
 const AGENT = 'splice-incident';
 const profile = fileURLToPath(new URL('../.kiro/agents/splice-incident.json', import.meta.url));
 
-function openAcp(executable, cwd, notify) {
-  const child = spawn(executable, ['acp', '--agent-engine', 'v3', '--auth-method', 'cli'], {
+function openAcp(executable, cwd, notify, spawnProcess) {
+  const child = spawnProcess(executable, ['acp', '--agent-engine', 'v3', '--auth-method', 'cli'], {
     cwd,
     windowsHide: true,
     stdio: ['pipe', 'pipe', 'pipe'],
@@ -77,7 +77,7 @@ function openAcp(executable, cwd, notify) {
   };
 }
 
-export async function diagnose({ snapshot, excerpt, question, signal, emit, executable = 'kiro-cli' }) {
+export async function diagnose({ snapshot, excerpt, question, signal, emit, executable = 'kiro-cli', spawnProcess = spawn }) {
   const cwd = await mkdtemp(join(tmpdir(), 'splice-incident-'));
   let client;
   let timer;
@@ -98,7 +98,7 @@ export async function diagnose({ snapshot, excerpt, question, signal, emit, exec
         return;
       }
       emit({ type: 'text', text: chunk });
-    });
+    }, spawnProcess);
     signal.addEventListener('abort', abort, { once: true });
     timer = setTimeout(() => client.stop(sessionId, 'Kiro timed out after three minutes.'), 180_000);
     const initialized = await client.request('initialize', {
@@ -110,10 +110,10 @@ export async function diagnose({ snapshot, excerpt, question, signal, emit, exec
     const session = await client.request('session/new', { cwd, mcpServers: [] });
     sessionId = session.sessionId;
     const modeConfig = session.configOptions?.find((option) => option.category === 'mode' || option.id === 'mode');
-    const modes = modeConfig?.options.flatMap((option) => option.options ?? option) ?? [];
+    const modes = modeConfig?.options?.flatMap((option) => option.options ?? option) ?? [];
     if (modes.some((mode) => mode.value === AGENT)) {
       await client.request('session/set_config_option', { sessionId, configId: modeConfig.id, value: AGENT });
-    } else if (session.modes?.availableModes.some((mode) => mode.id === AGENT)) {
+    } else if (session.modes?.availableModes?.some((mode) => mode.id === AGENT)) {
       await client.request('session/set_mode', { sessionId, modeId: AGENT });
     } else {
       throw new Error('Kiro did not advertise the Splice incident agent. Check CLI V3 and its workspace agent discovery.');

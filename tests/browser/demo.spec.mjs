@@ -61,6 +61,22 @@ test('keeps the controls inside a mobile viewport', async ({ page }) => {
   expect(tools.y).toBeLessThan(terminal.y);
 });
 
+test('explains how to use Kiro with an imported log', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#import').setInputFiles({
+    name: 'service.log',
+    mimeType: 'text/plain',
+    buffer: Buffer.from('ERROR request failed\n'),
+  });
+  await expect(page.locator('#log-count')).toHaveText('1 / 1 lines');
+  await page.getByRole('button', { name: 'Use matching lines' }).click();
+  await expect(page.getByRole('button', { name: 'View diagnosis' })).toBeDisabled();
+  await expect(page.locator('#import-hint')).toContainText('Run Splice locally');
+  await page.getByRole('button', { name: 'Review errors' }).click();
+  await expect(page.getByRole('button', { name: 'View diagnosis' })).toBeEnabled();
+  await expect(page.locator('#import-hint')).toBeHidden();
+});
+
 test('guides a first-time judge from the incident to verified logs', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');

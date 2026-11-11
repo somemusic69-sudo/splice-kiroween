@@ -186,6 +186,7 @@ function loadLogs(raw: string, label: string, fromSample = false) {
     return;
   }
   sampleInput = fromSample;
+  get('import-hint').hidden = live || fromSample;
   status('log-source', label);
   filter(raw);
   setExcerpt('');
@@ -322,6 +323,7 @@ function replaySample(recovery: boolean) {
   button('replay-before').setAttribute('aria-pressed', String(!recovery));
   button('replay-after').setAttribute('aria-pressed', String(recovery));
   button('replay-after').disabled = !sampleVerified;
+  get('recovery-hint').hidden = sampleVerified;
   get('retry-timing').classList.toggle('recovered', recovery);
   get('retry-track-label').textContent = recovery ? 'Verified retry' : 'Original retry';
   get('retry-track-value').textContent = recovery ? '2,000 ms' : '2 ms';

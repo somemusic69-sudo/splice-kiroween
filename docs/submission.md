@@ -10,7 +10,9 @@ Splice helps on-call developers turn server errors into a tested fix without lea
 
 ## Kiro integration
 
-Splice launches Kiro CLI through ACP V3 and streams the incident agent’s response into the cockpit. The tracked custom agent takes the operator’s question, log excerpt, and allowlisted source snapshots and returns a diagnosis and patch. The tracked retry incident spec defines the fixture and its regression test. In the submitted development write-up, describe the Kiro CLI development session and the outcomes actually verified.
+Splice launches Kiro CLI through ACP V3 and streams the incident agent’s response into the cockpit. The tracked custom agent takes the operator’s question, log excerpt, and allowlisted source snapshots and returns a diagnosis and patch. Its tool permissions deny execution and writes, so the operator reviews and applies the patch.
+
+During development, we asked the signed-in Kiro CLI incident agent to review the tracked retry specification, fixture, and regression test. Kiro identified that a single test input could pass with a hardcoded 2,000 ms result and suggested checking a second input. We added a one-second case to the fixture and the browser verification. Both cases must pass after the patch. The spec and the agent profile are in the root `.kiro` directory.
 
 On Windows, the live run passed with a signed-in Kiro CLI. Splice captured logs from a real Linux tmux session, filtered the evidence in WASM, obtained a Kiro-generated diff, and applied it after review. The PowerShell regression passed and the reattached SSH session showed the corrected retry behavior.
 

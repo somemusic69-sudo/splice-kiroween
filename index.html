@@ -15,7 +15,8 @@
     <section class="incident-bar demo-only" aria-labelledby="incident-title">
       <div>
         <h2 id="incident-title">Retry delay incident</h2>
-        <p>The worker retries before its upstream service can recover.</p>
+        <p>Follow recorded server logs through browser analysis, a sample Kiro diagnosis, and a tested fix.</p>
+        <p class="incident-context">Splice connects SSH and tmux, WebAssembly log tools, and Kiro CLI in a local workspace.</p>
       </div>
       <div class="actions">
         <button id="review-errors" class="accent" disabled>Review errors</button>
@@ -46,7 +47,8 @@
         </section>
         <div class="replay-controls demo-only" role="group" aria-label="Recorded log run">
           <button id="replay-before" aria-pressed="true">Original run</button>
-          <button id="replay-after" aria-pressed="false" disabled>Recovery run</button>
+          <button id="replay-after" aria-pressed="false" aria-describedby="recovery-hint" disabled>Recovery run</button>
+          <span id="recovery-hint">Available after testing the fix</span>
         </div>
         <div id="terminal"></div>
         <footer class="terminal-footer">
@@ -78,10 +80,12 @@
           </div>
           <div class="results-heading"><h3>Grouped messages</h3><span id="log-count" role="status">0 matches</span></div>
           <div id="log-results" class="log-results"><p class="empty">Matching messages will appear here.</p></div>
+          <p class="group-hint">Select a message to add it to the excerpt.</p>
           <div class="excerpt">
-            <label id="excerpt-label" for="excerpt">Excerpt for Kiro</label>
+            <div class="excerpt-heading"><label id="excerpt-label" for="excerpt">Excerpt for Kiro</label><button id="review" class="accent" disabled>Review for Kiro</button></div>
             <textarea id="excerpt" rows="4" maxlength="16000" spellcheck="false" placeholder="Select a message or add the filtered lines. Edit out anything you don’t want to share."></textarea>
-            <div class="actions"><button id="use-filtered" disabled>Use filtered lines</button><button id="review" class="accent" disabled>Review for Kiro</button></div>
+            <div class="actions"><button id="use-filtered" disabled>Use filtered lines</button></div>
+            <p id="import-hint" class="demo-only feedback" hidden>The sample diagnosis is for the recorded incident. <a href="./setup.html">Run Splice locally</a> to use Kiro with your logs.</p>
           </div>
         </section>
         <section id="kiro" class="tool-content" role="tabpanel" aria-labelledby="tab-kiro" hidden>
@@ -97,6 +101,7 @@
           <div class="section-heading"><h2 id="patch-heading">Patch review</h2><span id="patch-changes" class="patch-changes" hidden></span></div>
           <section id="sample-diagnosis" class="diagnosis demo-only" aria-labelledby="sample-diagnosis-label" hidden>
             <h3 id="sample-diagnosis-label">Sample Kiro diagnosis</h3>
+            <p class="diagnosis-note">This example is prepared in advance. The local workspace connects to Kiro CLI.</p>
             <p id="sample-diagnosis-text"></p>
           </section>
           <p id="patch-summary" class="feedback">Run the incident agent to prepare a patch.</p>

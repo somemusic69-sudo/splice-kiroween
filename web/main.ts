@@ -23,6 +23,9 @@ const views: View[] = ['logs', 'kiro', 'patch'];
 const live = !!document.querySelector('meta[name="splice-local"]');
 let authenticated = false;
 let filterId = 0;
+let reviewFilterId = 0;
+let sampleInput = false;
+let sampleVerified = false;
 let report: Report | undefined;
 let currentPatch: Patch | undefined;
 let running: AbortController | undefined;
@@ -52,10 +55,7 @@ const terminal = new Terminal({
 const fit = new FitAddon();
 terminal.loadAddon(fit);
 terminal.open(get('terminal'));
-const terminalIntro = live
-  ? 'Attach to an SSH target or open a local PowerShell session.'
-  : 'Load the incident to follow a retry failure from SSH logs to a tested fix.';
-terminal.writeln(terminalIntro);
+if (live) terminal.writeln('Attach to an SSH target or open a local PowerShell session.');
 new ResizeObserver(() => fit.fit()).observe(get('terminal'));
 
 function activate(view: View, focus = false) {
@@ -92,6 +92,8 @@ function status(id: string, message: string, error = false) {
   const node = get(id);
   node.textContent = message;
   node.classList.toggle('error', error);
+  if (id === 'agent-status' || id === 'agent-files') node.hidden = !message;
+  if (id === 'patch-status') get('patch-result').hidden = !message;
 }
 
 function renderResults(message: Report | { error: string }) {
@@ -136,9 +138,18 @@ function renderResults(message: Report | { error: string }) {
 }
 
 worker.onmessage = ({ data }) => {
-  if (data.ready) status('engine', 'WASM ready');
+  if (data.ready) {
+    button('review-errors').disabled = false;
+    status('engine', 'WASM ready');
+  }
   else if (data.fatal) status('engine', data.fatal, true);
-  else if (data.id === filterId) renderResults(data);
+  else if (data.id === filterId) {
+    renderResults(data);
+    if (data.id === reviewFilterId && report?.excerpt) {
+      setExcerpt(report.excerpt);
+      activate('logs', true);
+    }
+  }
 };
 worker.onerror = () => status('engine', 'WASM unavailable', true);
 
@@ -147,11 +158,15 @@ function filter(raw?: string) {
   worker.postMessage({ id: ++filterId, raw, level: select('severity').value, pattern: input('query').value });
 }
 
-function loadLogs(raw: string, label: string) {
+function loadLogs(raw: string, label: string, fromSample = false) {
   if (new TextEncoder().encode(raw).byteLength > 2 * 1024 * 1024) {
     status('log-source', 'Logs must be 2 MiB or smaller.', true);
     return;
   }
+  sampleInput = fromSample;
+  if (!live) get('agent-description').textContent = fromSample
+    ? 'Explore a sample diagnosis and patch for the retry incident.'
+    : 'Your imported logs stay in this browser. Reset the sample to try its diagnosis.';
   status('log-source', label);
   filter(raw);
   setExcerpt('');
@@ -167,7 +182,7 @@ function setExcerpt(value: string) {
 
 function syncRun() {
   button('run').disabled = !!running || !area('context').value.trim()
-    || (live && (!authenticated || !select('checkout').value));
+    || (live ? !authenticated || !select('checkout').value : !sampleInput);
 }
 
 input('query').oninput = () => filter();
@@ -190,38 +205,80 @@ area('excerpt').oninput = () => setExcerpt(area('excerpt').value);
 button('use-filtered').onclick = () => setExcerpt(report?.excerpt ?? '');
 button('review').onclick = () => activate('kiro', true);
 button('show-patch').onclick = () => activate('patch', true);
+button('edit-excerpt').onclick = () => {
+  activate('logs');
+  area('excerpt').focus();
+};
 function showSourceList() {
   const files = checkoutOptions.find((item) => item.id === select('checkout').value)?.agentFiles;
   status('agent-files', files?.length ? 'Source files sent with the excerpt: ' + files.join(', ') : '');
   syncRun();
 }
 
-select('checkout').onchange = showSourceList;
+select('checkout').onchange = () => {
+  showPatch();
+  get('response').hidden = true;
+  status('agent-status', '');
+  showSourceList();
+};
 terminal.onSelectionChange(() => { button('capture').disabled = !terminal.hasSelection(); });
-button('capture').onclick = () => loadLogs(terminal.getSelection(), 'Terminal selection');
+button('capture').onclick = () => loadLogs(terminal.getSelection(), 'Terminal selection', !live);
+
+function focusTerminal() {
+  get('terminal-heading').focus();
+}
+
+button('review-errors').onclick = () => {
+  if (sampleVerified) {
+    focusTerminal();
+    return;
+  }
+  if (!sampleInput) sample();
+  select('severity').value = 'ERROR';
+  input('query').value = '';
+  reviewFilterId = filterId + 1;
+  filter();
+};
 
 function showPatch(patch?: Patch) {
   currentPatch = patch;
   const diff = get('diff');
   diff.replaceChildren();
+  diff.hidden = !patch;
+  let added = 0;
+  let removed = 0;
   for (const line of patch?.diff.trimEnd().split('\n') ?? []) {
     const row = document.createElement('span');
     row.textContent = line || ' ';
-    if (line.startsWith('+') && !line.startsWith('+++')) row.className = 'added';
-    if (line.startsWith('-') && !line.startsWith('---')) row.className = 'removed';
+    if (line.startsWith('+') && !line.startsWith('+++ ')) {
+      row.className = 'added';
+      added++;
+    }
+    if (line.startsWith('-') && !line.startsWith('--- ')) {
+      row.className = 'removed';
+      removed++;
+    }
     if (line.startsWith('@@')) row.className = 'range';
     diff.append(row);
   }
+  get('patch-changes').textContent = `+${added} / −${removed}`;
+  get('patch-changes').hidden = !patch;
   get('patch-summary').textContent = patch ? patch.files.join(', ') : 'Run the incident agent to prepare a patch.';
   button('apply').disabled = !patch;
   button('discard').disabled = !patch;
   button('show-patch').hidden = !patch;
+  button('run').classList.toggle('accent', !patch);
+  button('verify-terminal').hidden = true;
+  get('patch-result').classList.remove('verified');
   status('patch-status', '');
 }
 
 function sample() {
   showPatch();
-  get('response').textContent = '';
+  get('response').hidden = true;
+  sampleVerified = false;
+  status('incident-state', 'A worker exhausted its retry budget before the upstream service recovered.');
+  button('review-errors').textContent = 'Review error logs';
   status('agent-status', '');
   select('severity').value = '';
   input('query').value = '';
@@ -230,7 +287,7 @@ function sample() {
   terminal.writeln('$ tail -n 6 /tmp/splice-retry.log');
   for (const line of sampleLogs.split(/\r?\n/)) terminal.writeln(line);
   terminal.writeln('\r\n$ ');
-  loadLogs(sampleLogs, 'retry-worker.log');
+  loadLogs(sampleLogs, 'retry-worker.log', true);
 }
 
 button('sample').onclick = sample;
@@ -255,6 +312,7 @@ function post(path: string, body: object, signal?: AbortSignal) {
 function agentEvent(event: AgentEvent) {
   if (event.type === 'text') {
     const output = get('response');
+    output.hidden = false;
     const atBottom = output.scrollHeight - output.clientHeight - output.scrollTop < 20;
     output.append(document.createTextNode(event.text ?? ''));
     if (atBottom) output.scrollTop = output.scrollHeight;
@@ -292,6 +350,7 @@ button('run').onclick = async () => {
   if (running || !area('context').value.trim()) return;
   showPatch();
   get('response').textContent = '';
+  get('response').hidden = true;
   if (!live) {
     agentEvent({ type: 'text', text: sampleDiagnosis });
     agentEvent({ type: 'status', text: 'Sample response ready.' });
@@ -299,6 +358,7 @@ button('run').onclick = async () => {
     return;
   }
   running = new AbortController();
+  select('checkout').disabled = true;
   syncRun();
   button('cancel').hidden = false;
   status('agent-status', 'Starting Kiro CLI…');
@@ -322,6 +382,7 @@ button('run').onclick = async () => {
     status('agent-status', cancelled ? 'Cancelled.' : String((error as Error).message), !cancelled);
   } finally {
     running = undefined;
+    select('checkout').disabled = false;
     button('cancel').hidden = true;
     syncRun();
   }
@@ -335,6 +396,7 @@ button('apply').onclick = async () => {
   button('apply').disabled = true;
   button('discard').disabled = true;
   button('sample').disabled = true;
+  select('checkout').disabled = true;
   button('run').disabled = true;
   try {
     let result = 'Patch applied to the checkout. Run your tests in PowerShell.';
@@ -344,6 +406,9 @@ button('apply').onclick = async () => {
       status('patch-status', 'Applying the sample diff and running the regression test…');
       const { before, after } = await verifySample();
       result = `Regression passed. The retry delay changed from ${before} ms to ${after.toLocaleString('en-US')} ms.`;
+      sampleVerified = true;
+      status('incident-state', 'Verified fix · Retry delay changed from 2 ms to 2,000 ms.');
+      button('review-errors').textContent = 'View fixed logs';
       terminal.writeln('\r\n\x1b[32mPASS\x1b[0m Browser regression: ' + before + ' ms → ' + after + ' ms');
       terminal.writeln('\r\nRecorded post-fix logs');
       for (const line of sampleVerification.split(/\r?\n/)) terminal.writeln(line);
@@ -351,14 +416,23 @@ button('apply').onclick = async () => {
     currentPatch = undefined;
     button('show-patch').hidden = true;
     status('patch-status', result);
+    get('patch-result').classList.add('verified');
+    button('verify-terminal').textContent = live ? 'Open PowerShell' : 'See terminal verification';
+    button('verify-terminal').hidden = false;
   } catch (error) {
     status('patch-status', (error as Error).message, true);
     button('apply').disabled = false;
     button('discard').disabled = false;
   } finally {
     button('sample').disabled = false;
+    select('checkout').disabled = false;
     syncRun();
   }
+};
+
+button('verify-terminal').onclick = () => {
+  if (live) button('powershell').click();
+  focusTerminal();
 };
 
 button('discard').onclick = async () => {

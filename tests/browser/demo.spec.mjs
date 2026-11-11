@@ -35,4 +35,28 @@ test('keeps the controls inside a mobile viewport', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('button', { name: 'Reset sample incident' })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(375);
+  const tools = await page.getByRole('tablist').boundingBox();
+  const terminal = await page.getByRole('heading', { name: 'Terminal', exact: true }).boundingBox();
+  expect(tools.y).toBeLessThan(terminal.y);
+});
+
+test('guides a first-time judge from the incident to verified logs', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Review error logs' }).click();
+  await expect(page.locator('#log-count')).toHaveText('3 / 6 lines');
+  await page.getByRole('button', { name: 'Review for Kiro' }).click();
+  await expect(page.getByLabel('Context preview')).toHaveValue(/retry budget exhausted/);
+  await page.getByRole('button', { name: 'Edit excerpt' }).click();
+  await expect(page.getByLabel('Excerpt for Kiro')).toBeFocused();
+  await expect(page.locator('#log-count')).toHaveText('3 / 6 lines');
+  await page.getByRole('button', { name: 'Review for Kiro' }).click();
+  await page.getByRole('button', { name: 'Show sample diagnosis' }).click();
+  await page.getByRole('button', { name: 'Review patch', exact: true }).click();
+  await expect(page.locator('#patch-changes')).toHaveText('+1 / −1');
+  await page.getByRole('button', { name: 'Apply and test sample patch' }).click();
+  await expect(page.locator('#incident-state')).toContainText('Verified fix');
+  await page.getByRole('button', { name: 'See terminal verification' }).click();
+  await expect(page.getByRole('heading', { name: 'Terminal', exact: true })).toBeFocused();
+  await expect(page.locator('.xterm-rows')).toContainText('retry succeeded after upstream cooldown');
 });

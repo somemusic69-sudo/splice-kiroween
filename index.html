@@ -11,20 +11,31 @@
       <div class="brand"><span class="brand-mark" aria-hidden="true">&gt;_</span><h1>Splice</h1><span class="brand-detail">Incident cockpit</span></div>
       <div class="header-actions"><a href="./setup.html">Local setup</a><span id="mode" class="mode">Starting</span></div>
     </header>
+    <section class="incident-bar demo-only" aria-labelledby="incident-title">
+      <div>
+        <h2 id="incident-title">The retry storm</h2>
+        <p id="incident-state">A worker exhausted its retry budget before the upstream service recovered.</p>
+      </div>
+      <div class="actions">
+        <button id="review-errors" class="accent" disabled>Review error logs</button>
+        <a class="jump-link" href="#terminal-heading">Terminal replay</a>
+        <button id="sample">Reset sample incident</button>
+      </div>
+    </section>
     <main class="workspace">
       <section class="pane terminal-pane" aria-labelledby="terminal-heading">
         <header class="pane-header">
-          <h2 id="terminal-heading">Terminal</h2>
+          <h2 id="terminal-heading" tabindex="-1">Terminal</h2>
           <span id="terminal-status" role="status"></span>
         </header>
-        <div id="terminal-controls" class="toolbar">
+        <div id="terminal-controls" class="toolbar live-only">
           <label class="live-only">Host <select id="target" aria-label="SSH target"></select></label>
           <label class="live-only">tmux <input id="tmux" value="splice" maxlength="64" size="9"></label>
           <button id="connect" class="live-only accent">Attach SSH</button>
           <button id="powershell" class="live-only">PowerShell</button>
           <button id="disconnect" class="live-only" disabled>Disconnect</button>
-          <button id="sample" class="demo-only">Reset sample incident</button>
         </div>
+        <div class="checkout-bar live-only"><label for="checkout">Git checkout</label><select id="checkout"></select></div>
         <div id="terminal"></div>
         <footer class="terminal-footer">
           <span id="terminal-hint"></span>
@@ -59,20 +70,21 @@
         </section>
         <section id="kiro" class="tool-content" role="tabpanel" aria-labelledby="tab-kiro" hidden>
           <div class="section-heading"><div><h2>Incident agent</h2><p id="agent-description"></p></div></div>
-          <label class="live-only field">Git checkout <select id="checkout"></select></label>
-          <p id="agent-files" class="live-only feedback"></p>
+          <p id="agent-files" class="live-only feedback" hidden></p>
           <label class="field">Context preview<textarea id="context" rows="5" readonly spellcheck="false"></textarea></label>
           <label class="live-only field">Question<input id="question" value="Diagnose the incident and propose the smallest fix." maxlength="1000"></label>
-          <div class="actions"><button id="run" class="accent">Run Kiro</button><button id="cancel" hidden>Cancel</button></div>
-          <p id="agent-status" class="feedback" role="status"></p>
-          <pre id="response" class="output" tabindex="0" aria-label="Agent response"></pre>
-          <button id="show-patch" hidden>Review patch</button>
+          <div class="actions"><button id="run" class="accent">Run Kiro</button><button id="cancel" hidden>Cancel</button><button id="show-patch" class="accent" hidden>Review patch</button><button id="edit-excerpt">Edit excerpt</button></div>
+          <p id="agent-status" class="feedback" role="status" hidden></p>
+          <pre id="response" class="output" tabindex="0" aria-label="Agent response" hidden></pre>
         </section>
         <section id="patch" class="tool-content" role="tabpanel" aria-labelledby="tab-patch" hidden>
-          <div class="section-heading"><div><h2>Patch review</h2><p id="patch-summary">Run the incident agent to prepare a patch.</p></div></div>
-          <pre id="diff" class="output diff" tabindex="0" aria-label="Unified diff"></pre>
+          <div class="section-heading"><div><h2>Patch review</h2><p id="patch-summary">Run the incident agent to prepare a patch.</p></div><span id="patch-changes" class="patch-changes" hidden></span></div>
+          <pre id="diff" class="output diff" tabindex="0" aria-label="Unified diff" hidden></pre>
           <div class="actions"><button id="apply" class="accent" disabled>Apply patch</button><button id="discard" disabled>Discard</button></div>
-          <p id="patch-status" class="feedback" role="status"></p>
+          <div id="patch-result" class="patch-result" hidden>
+            <p id="patch-status" class="feedback" role="status"></p>
+            <button id="verify-terminal" hidden></button>
+          </div>
         </section>
       </section>
     </main>

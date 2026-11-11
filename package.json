@@ -1,0 +1,29 @@
+{
+  "name": "splice-cockpit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build:wasm": "wasm-pack build crates/logs --target web --out-dir ../../web/wasm --release",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "start": "node bridge/server.mjs",
+    "test": "node --test tests/bridge.test.mjs",
+    "test:browser": "playwright test"
+  },
+  "dependencies": {
+    "@xterm/addon-fit": "0.10.0",
+    "@xterm/xterm": "5.5.0",
+    "node-pty": "1.1.0",
+    "ws": "8.21.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "typescript": "5.9.3",
+    "vite": "7.3.8",
+    "wasm-pack": "0.15.1"
+  }
+}

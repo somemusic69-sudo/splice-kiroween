@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Local setup — Splice</title>
+    <link rel="stylesheet" href="/web/style.css">
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">&gt;_</span><h1>Splice</h1><span class="brand-detail">Incident cockpit</span></div>
+      <a href="./index.html">Open cockpit</a>
+    </header>
+    <main class="setup">
+      <h2>Run Splice on Windows 11</h2>
+      <p>The sample workspace runs in your browser. For live SSH, tmux and Kiro CLI, launch the local bridge from the source repository.</p>
+      <p id="repository-link" hidden><a href="#" id="repository">Open the source repository</a></p>
+      <ol>
+        <li>Install Node.js 22.12 or newer, Git, Windows OpenSSH, and Rust through rustup. Install and sign in to Kiro CLI with the V3 harness.</li>
+        <li>Configure an SSH alias for an authorized Linux host with tmux. Verify the host key in OpenSSH.</li>
+        <li>Copy <code>splice.example.json</code> to <code>splice.local.json</code> and set the alias, Git checkout path, and source files the agent can read.</li>
+        <li>From the repository root, run the commands below and open the single-use link printed by the bridge.</li>
+      </ol>
+      <pre class="output">npm ci
+rustup target add wasm32-unknown-unknown
+npm run build:wasm
+npm run build
+npm start</pre>
+      <p>The repository README includes a disposable Linux fixture and an end-to-end retry incident walkthrough.</p>
+    </main>
+    <script type="module" src="/web/setup.ts"></script>
+  </body>
+</html>

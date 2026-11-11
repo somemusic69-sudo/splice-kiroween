@@ -1,0 +1,10 @@
+node_modules/
+dist/
+target/
+web/wasm/
+splice.local.json
+playwright-report/
+test-results/
+.env
+.splice-tools/
+.fixture/

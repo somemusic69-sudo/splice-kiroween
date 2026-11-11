@@ -1,0 +1,6 @@
+2026-11-11T07:27:43.781Z INFO worker started
+{"ts":"2026-11-11T07:27:43.800Z","level":"ERROR","message":"retry fired before upstream cooldown"}
+2026-11-11T07:27:43.800Z WARN retry delay was 2ms; upstream cooldown is 2000ms
+{"ts":"2026-11-11T07:27:43.800Z","level":"ERROR","message":"retry fired before upstream cooldown"}
+2026-11-11T07:27:43.800Z WARN retry delay was 2ms; upstream cooldown is 2000ms
+2026-11-11T07:27:43.800Z ERROR retry budget exhausted

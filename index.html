@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#161616">
+    <title>Splice — Incident cockpit</title>
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">&gt;_</span><h1>Splice</h1><span class="brand-detail">Incident cockpit</span></div>
+      <div class="header-actions"><a href="./setup.html">Local setup</a><span id="mode" class="mode">Starting</span></div>
+    </header>
+    <main class="workspace">
+      <section class="pane terminal-pane" aria-labelledby="terminal-heading">
+        <header class="pane-header">
+          <h2 id="terminal-heading">Terminal</h2>
+          <span id="terminal-status" role="status"></span>
+        </header>
+        <div id="terminal-controls" class="toolbar">
+          <label class="live-only">Host <select id="target" aria-label="SSH target"></select></label>
+          <label class="live-only">tmux <input id="tmux" value="splice" maxlength="64" size="9"></label>
+          <button id="connect" class="live-only accent">Attach SSH</button>
+          <button id="powershell" class="live-only">PowerShell</button>
+          <button id="disconnect" class="live-only" disabled>Disconnect</button>
+          <button id="sample" class="demo-only accent">Load sample incident</button>
+        </div>
+        <div id="terminal"></div>
+        <footer class="terminal-footer">
+          <span id="terminal-hint"></span>
+          <button id="capture" disabled>Send selection to Logs</button>
+        </footer>
+      </section>
+      <section class="pane tools-pane" aria-label="Incident tools">
+        <header class="pane-header tools-header">
+          <div role="tablist" aria-label="Incident tools">
+            <button id="tab-logs" role="tab" aria-controls="logs" aria-selected="true">Logs</button>
+            <button id="tab-kiro" role="tab" aria-controls="kiro" aria-selected="false" tabindex="-1">Kiro</button>
+            <button id="tab-patch" role="tab" aria-controls="patch" aria-selected="false" tabindex="-1">Patch</button>
+          </div>
+          <span id="engine" role="status">Loading WASM</span>
+        </header>
+        <section id="logs" class="tool-content" role="tabpanel" aria-labelledby="tab-logs">
+          <div class="section-heading">
+            <div><h2>Log explorer</h2><p id="log-source">Import a log file or select output in the terminal.</p></div>
+            <label class="button import">Import log<input id="import" type="file" accept=".log,.txt,.jsonl,.ndjson,text/plain"></label>
+          </div>
+          <div class="filters">
+            <label>Severity<select id="severity"><option value="">All levels</option><option>ERROR</option><option>WARN</option><option>INFO</option><option>DEBUG</option><option>TRACE</option><option>UNKNOWN</option></select></label>
+            <label>Regex<input id="query" type="search" placeholder="Filter by pattern" maxlength="512" spellcheck="false"></label>
+          </div>
+          <div class="results-heading"><h3>Messages</h3><span id="log-count" role="status">0 matches</span></div>
+          <div id="log-results" class="log-results"><p class="empty">Matching messages will appear here.</p></div>
+          <div class="excerpt">
+            <label for="excerpt">Excerpt for Kiro</label>
+            <textarea id="excerpt" rows="4" maxlength="16000" spellcheck="false" placeholder="Select a message or add the filtered lines. Edit out anything you don’t want to share."></textarea>
+            <div class="actions"><button id="use-filtered" disabled>Use filtered lines</button><button id="review" class="accent" disabled>Review for Kiro</button></div>
+          </div>
+        </section>
+        <section id="kiro" class="tool-content" role="tabpanel" aria-labelledby="tab-kiro" hidden>
+          <div class="section-heading"><div><h2>Incident agent</h2><p id="agent-description"></p></div></div>
+          <label class="live-only field">Git checkout <select id="checkout"></select></label>
+          <p id="agent-files" class="live-only feedback"></p>
+          <label class="field">Context preview<textarea id="context" rows="5" readonly spellcheck="false"></textarea></label>
+          <label class="field">Question<input id="question" value="Diagnose the incident and propose the smallest fix." maxlength="1000"></label>
+          <div class="actions"><button id="run" class="accent">Run Kiro</button><button id="cancel" hidden>Cancel</button></div>
+          <p id="agent-status" class="feedback" role="status"></p>
+          <pre id="response" class="output" tabindex="0" aria-label="Agent response"></pre>
+          <button id="show-patch" hidden>Review patch</button>
+        </section>
+        <section id="patch" class="tool-content" role="tabpanel" aria-labelledby="tab-patch" hidden>
+          <div class="section-heading"><div><h2>Patch review</h2><p id="patch-summary">Run the incident agent to prepare a patch.</p></div></div>
+          <pre id="diff" class="output diff" tabindex="0" aria-label="Unified diff"></pre>
+          <div class="actions"><button id="apply" class="accent" disabled>Apply patch</button><button id="discard" disabled>Discard</button></div>
+          <p id="patch-status" class="feedback" role="status"></p>
+        </section>
+      </section>
+    </main>
+    <script type="module" src="/web/main.ts"></script>
+  </body>
+</html>

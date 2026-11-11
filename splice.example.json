@@ -1,0 +1,13 @@
+{
+  "targets": [
+    { "id": "fixture", "label": "Retry fixture", "alias": "splice-fixture" }
+  ],
+  "checkouts": [
+    {
+      "id": "retry-worker",
+      "label": "Retry worker",
+      "path": "C:/importantr/kirioween/.fixture/source",
+      "agentFiles": ["retry.mjs", "retry.test.mjs"]
+    }
+  ]
+}

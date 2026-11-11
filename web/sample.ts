@@ -6,7 +6,7 @@ export const sampleVerification = after.trim();
 
 export const sampleDiagnosis = [
   'The server was supposed to wait 2 seconds before trying again. It waited only 2 milliseconds.',
-  'The setting uses seconds, but the timer reads milliseconds. The repair converts 2 seconds to 2,000 milliseconds before starting the timer.',
+  'The setting uses seconds, but the timer reads milliseconds. That is why retries happened before the service could recover.',
 ].join('\n\n');
 
 export const sampleDiff = [

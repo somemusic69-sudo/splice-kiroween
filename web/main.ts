@@ -19,9 +19,8 @@ const button = (id: string) => get<HTMLButtonElement>(id);
 const input = (id: string) => get<HTMLInputElement>(id);
 const select = (id: string) => get<HTMLSelectElement>(id);
 const area = (id: string) => get<HTMLTextAreaElement>(id);
-const views: View[] = ['logs', 'kiro', 'patch'];
 const live = !!document.querySelector('meta[name="splice-local"]');
-const sampleIntro = 'A server keeps trying again too soon. Follow the clues, see what went wrong, and test the fix yourself.';
+const views: View[] = live ? ['logs', 'kiro', 'patch'] : ['logs', 'patch'];
 let authenticated = false;
 let filterId = 0;
 let reviewFilterId = 0;
@@ -38,30 +37,31 @@ let reconnectTimer: number | undefined;
 document.body.classList.add(live ? 'live' : 'demo');
 input('pattern-mode').checked = live;
 get('mode').textContent = live ? 'Local workspace' : 'Sample workspace';
-get('agent-description').textContent = live
-  ? 'Running Kiro sends the preview and question to the Kiro service. The agent can read your selected checkout.'
-  : 'Read Kiro’s sample explanation of why the server kept failing.';
-button('run').textContent = live ? 'Run Kiro' : 'Reveal the cause';
-button('apply').textContent = live ? 'Apply patch' : 'Test the fix';
+get('agent-description').textContent = 'Running Kiro sends the preview and question to the Kiro service. The agent can read your selected checkout.';
+button('apply').textContent = live ? 'Apply patch' : 'Test fix';
 get('terminal-status').textContent = live ? 'Disconnected' : 'Recorded SSH logs';
-get('terminal-hint').textContent = live ? 'Select terminal output to inspect it.' : 'Select any line to investigate it.';
+get('terminal-hint').textContent = 'Select terminal output to inspect it.';
 if (!live) {
   get('engine').textContent = 'Loading log tools…';
   get('engine').title = 'Log analysis runs in WebAssembly on this device.';
-  button('tab-logs').textContent = 'Clues';
-  button('tab-kiro').textContent = 'Cause';
-  button('tab-patch').textContent = 'Fix';
-  get('terminal-heading').textContent = 'Server replay';
-  get('logs').querySelector('h2')!.textContent = 'Follow the clues';
-  get('kiro').querySelector('h2')!.textContent = 'What went wrong?';
-  get('patch-heading').textContent = 'Try the repair';
-  get('excerpt-label').textContent = 'Clues for Kiro';
-  get('context-label').textContent = 'Clues to review';
-  area('excerpt').placeholder = 'Choose a message or use the matching lines. You can edit them here.';
+  button('tab-patch').textContent = 'Diagnosis & fix';
+  get('terminal-heading').textContent = 'Server log replay';
+  get('patch-heading').textContent = 'Diagnosis & fix';
+  get('excerpt-label').textContent = 'Log excerpt';
+  get('sample-diagnosis-text').textContent = sampleDiagnosis;
+  area('excerpt').placeholder = 'Choose a message or use the matching lines to prepare an excerpt.';
   button('use-filtered').textContent = 'Use matching lines';
-  button('review').textContent = 'Review clues';
-  button('edit-excerpt').textContent = 'Edit clues';
-  button('show-patch').textContent = 'Review the fix';
+  button('review').textContent = 'View diagnosis';
+
+  const workspace = document.querySelector('.workspace')!;
+  const toolsPane = document.querySelector('.tools-pane')!;
+  const stackedLayout = matchMedia('(max-width: 850px)');
+  function positionTools() {
+    if (stackedLayout.matches) workspace.prepend(toolsPane);
+    else workspace.append(toolsPane);
+  }
+  positionTools();
+  stackedLayout.addEventListener('change', positionTools);
 }
 
 const terminal = new Terminal({
@@ -186,9 +186,6 @@ function loadLogs(raw: string, label: string, fromSample = false) {
     return;
   }
   sampleInput = fromSample;
-  if (!live) get('agent-description').textContent = fromSample
-    ? 'Read Kiro’s sample explanation of why the server kept failing.'
-    : 'Your imported logs stay in this browser. Start over to try the sample explanation.';
   status('log-source', label);
   filter(raw);
   setExcerpt('');
@@ -198,13 +195,13 @@ function loadLogs(raw: string, label: string, fromSample = false) {
 function setExcerpt(value: string) {
   area('excerpt').value = value;
   area('context').value = value;
-  button('review').disabled = !value.trim();
+  button('review').disabled = !value.trim() || (!live && !sampleInput);
   syncRun();
 }
 
 function syncRun() {
   button('run').disabled = !!running || !area('context').value.trim()
-    || (live ? !authenticated || !select('checkout').value : !sampleInput);
+    || !authenticated || !select('checkout').value;
 }
 
 input('query').oninput = () => filter();
@@ -226,7 +223,14 @@ input('import').onchange = async () => {
 };
 area('excerpt').oninput = () => setExcerpt(area('excerpt').value);
 button('use-filtered').onclick = () => setExcerpt(report?.excerpt ?? '');
-button('review').onclick = () => activate('kiro', true);
+button('review').onclick = () => {
+  if (live) {
+    activate('kiro', true);
+    return;
+  }
+  if (!sampleVerified) showPatch({ id: 'sample', diff: sampleDiff, files: ['retry.mjs'] });
+  activate('patch', true);
+};
 button('show-patch').onclick = () => activate('patch', true);
 button('edit-excerpt').onclick = () => {
   activate('logs');
@@ -252,15 +256,13 @@ function focusTerminal() {
 }
 
 button('review-errors').onclick = () => {
-  if (sampleVerified) {
-    focusTerminal();
-    return;
-  }
   if (!sampleInput) sample();
   select('severity').value = 'ERROR';
   input('query').value = '';
+  input('pattern-mode').checked = false;
+  status('log-source', 'retry-worker.log');
   reviewFilterId = filterId + 1;
-  filter();
+  filter(sampleLogs);
 };
 
 function showPatch(patch?: Patch) {
@@ -270,6 +272,7 @@ function showPatch(patch?: Patch) {
   const details = get<HTMLDetailsElement>('diff-details');
   details.hidden = !patch;
   details.open = live;
+  get('sample-diagnosis').hidden = !patch;
   let added = 0;
   let removed = 0;
   for (const line of patch?.diff.trimEnd().split('\n') ?? []) {
@@ -287,10 +290,10 @@ function showPatch(patch?: Patch) {
     diff.append(row);
   }
   get('patch-changes').textContent = `+${added} / −${removed}`;
-  get('patch-changes').hidden = !patch;
+  get('patch-changes').hidden = !live || !patch;
   get('patch-summary').textContent = live
     ? (patch ? patch.files.join(', ') : 'Run the incident agent to prepare a patch.')
-    : (patch ? 'Make the server wait two full seconds before trying again.' : 'Follow the clues to find a fix you can test.');
+    : (patch ? 'Proposed change: convert the retry delay to milliseconds before starting the timer.' : 'Review the errors and open the sample diagnosis.');
   button('apply').disabled = !patch;
   button('discard').disabled = !patch;
   button('show-patch').hidden = !patch;
@@ -304,8 +307,6 @@ function sample() {
   showPatch();
   get('response').hidden = true;
   sampleVerified = false;
-  status('incident-state', sampleIntro);
-  button('review-errors').textContent = 'Find the clues';
   input('pattern-mode').checked = false;
   status('agent-status', '');
   select('severity').value = '';
@@ -379,11 +380,6 @@ button('run').onclick = async () => {
   showPatch();
   get('response').textContent = '';
   get('response').hidden = true;
-  if (!live) {
-    agentEvent({ type: 'text', text: sampleDiagnosis });
-    showPatch({ id: 'sample', diff: sampleDiff, files: ['retry.mjs'] });
-    return;
-  }
   running = new AbortController();
   select('checkout').disabled = true;
   syncRun();
@@ -432,10 +428,8 @@ button('apply').onclick = async () => {
     } else {
       status('patch-status', 'Testing the repair in your browser…');
       const { before, after } = await verifySample();
-      result = `Test passed. The server now waits ${after.toLocaleString('en-US')} ms before retrying, up from ${before} ms.`;
+      result = `Test passed · ${before} ms → ${after.toLocaleString('en-US')} ms`;
       sampleVerified = true;
-      status('incident-state', 'Verified fix · Retry delay changed from 2 ms to 2,000 ms.');
-      button('review-errors').textContent = 'View fixed logs';
       terminal.writeln('\r\n\x1b[32mPASS\x1b[0m Browser regression: ' + before + ' ms → ' + after + ' ms');
       terminal.writeln('\r\nRecorded post-fix logs');
       for (const line of sampleVerification.split(/\r?\n/)) terminal.writeln(line);
@@ -444,7 +438,7 @@ button('apply').onclick = async () => {
     button('show-patch').hidden = true;
     status('patch-status', result);
     get('patch-result').classList.add('verified');
-    button('verify-terminal').textContent = live ? 'Open PowerShell' : 'See the server recover';
+    button('verify-terminal').textContent = live ? 'Open PowerShell' : 'View recovery logs';
     button('verify-terminal').hidden = false;
   } catch (error) {
     status('patch-status', (error as Error).message, true);

@@ -1,6 +1,6 @@
 # Splice
 
-Splice is a local-first incident cockpit for Windows 11. It puts an SSH/tmux terminal, a browser WASM log explorer, a Kiro CLI incident agent, and Git patch review in one tab. The Kiroween 2026 entry is in the **Frankenstein** category.
+Splice helps on-call developers turn server errors into a tested fix without leaving one workspace. The Windows 11 workspace brings SSH/tmux, a browser WASM log explorer, Kiro CLI, and Git patch review together. Splice is a Kiroween 2026 **Frankenstein** entry.
 
 ## Run on Windows 11
 
@@ -49,7 +49,7 @@ Set `sshConfig` to the absolute path of a dedicated OpenSSH config or `kiroExecu
 
 ## Judge build
 
-The [public demo](https://somemusic69-sudo.github.io/splice-kiroween/) opens on **The Retry Haunting**, a recorded retry incident. Click **Find the clues** to prepare the excerpt, then follow the tabs to the cause and the fix. **Test the fix** applies the bundled diff in a browser worker and runs the retry code before and after the repair. **See the server recover** takes you to the recorded post-fix SSH logs. The disposable fixture is the live SSH and Kiro test path.
+A service should wait two seconds before retrying, but it waits only two milliseconds. Click **Review errors** to group the recorded failures and prepare an editable excerpt. **View diagnosis** shows a sample Kiro explanation and the proposed change. **Test fix** applies the bundled diff and runs the retry code in a browser worker. Use **View recovery logs** to see the recorded post-fix SSH output. [Public demo](https://somemusic69-sudo.github.io/splice-kiroween/)
 
 To publish, push the repository to a public GitHub repo with a `main` branch. In **Settings → Pages**, choose **GitHub Actions** as the source and run **Publish Splice demo**. The workflow builds the static app and reports the live URL in its deployment output.
 

@@ -2,11 +2,11 @@
 
 ## Devpost description
 
-At 2 a.m., an on-call developer has a retry storm to investigate. Splice lets them select the evidence in an SSH/tmux terminal, group errors with browser-side Rust WebAssembly, and send a reviewed excerpt to a Kiro CLI incident agent. The agent proposes a diff, the developer reviews it, and the local bridge checks the Git revision and file contents before applying it. They run the regression in PowerShell and return to the same tmux session to verify the fix.
+Splice helps on-call developers turn server errors into a tested fix without leaving one workspace. They select evidence in an SSH/tmux terminal, group errors with browser-side Rust WebAssembly, and send a reviewed excerpt to Kiro CLI. Splice checks that the Git revision and files still match what Kiro analyzed before applying the developer-approved change. The developer can test it in PowerShell and return to the same tmux session to verify the fix.
 
 **Category** · Frankenstein
 
-**Try it.** Open **The Retry Haunting** and click **Find the clues**. Follow the recorded SSH logs to Kiro’s sample explanation and click **Test the fix**. The browser runs the retry code and shows the delay change from **2 ms to 2,000 ms**. [Live demo](https://somemusic69-sudo.github.io/splice-kiroween/) · [Source and Windows setup](https://github.com/somemusic69-sudo/splice-kiroween)
+**Try it.** A service should wait two seconds before retrying, but it waits only two milliseconds. Click **Review errors**, **View diagnosis**, and **Test fix** to see the browser verify the change from **2 ms to 2,000 ms**. [Live demo](https://somemusic69-sudo.github.io/splice-kiroween/) · [Source and Windows setup](https://github.com/somemusic69-sudo/splice-kiroween)
 
 ## Kiro integration
 

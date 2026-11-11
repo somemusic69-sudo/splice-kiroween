@@ -3,28 +3,28 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#17121e">
-    <meta name="description" content="Follow a server mystery from the first clue to a tested fix in Splice, a Kiroween project.">
-    <title>Splice — The Retry Haunting</title>
+    <meta name="theme-color" content="#171819">
+    <meta name="description" content="Splice helps on-call developers turn server errors into a tested fix without leaving one workspace.">
+    <title>Splice — Incident response workspace</title>
   </head>
   <body>
     <header class="masthead">
       <div class="brand"><span class="brand-mark" aria-hidden="true">&gt;_</span><h1>Splice</h1><span class="brand-detail demo-only">Kiroween demo</span><span class="brand-detail live-only">Incident cockpit</span></div>
-      <div class="header-actions"><a class="demo-only" href="https://github.com/somemusic69-sudo/splice-kiroween">GitHub</a><a href="./setup.html">Local setup</a><span id="mode" class="mode live-only">Starting</span></div>
+      <div class="header-actions"><a href="https://github.com/somemusic69-sudo/splice-kiroween">GitHub</a><a href="./setup.html">Local setup</a><span id="mode" class="mode live-only">Starting</span></div>
     </header>
     <section class="incident-bar demo-only" aria-labelledby="incident-title">
       <div class="incident-copy">
-        <h2 id="incident-title">The Retry Haunting</h2>
-        <p id="incident-state">A server keeps trying again too soon. Follow the clues, see what went wrong, and test the fix yourself.</p>
+        <h2 id="incident-title">Splice helps on-call developers turn server errors into a tested fix without leaving one workspace.</h2>
+        <p>A service should wait two seconds before retrying, but it waits only two milliseconds.</p>
         <div class="actions">
-          <button id="review-errors" class="accent" disabled>Find the clues</button>
-          <button id="sample" class="quiet">Start over</button>
+          <button id="review-errors" class="accent" disabled>Review errors</button>
+          <button id="sample" class="quiet">Reset demo</button>
         </div>
       </div>
-      <div class="haunting-art" aria-hidden="true">
-        <span class="moon"></span><span class="spark spark-one"></span><span class="spark spark-two"></span>
-        <span class="lantern"><span class="stalk"></span><span class="gourd"><span class="lantern-face"></span></span></span>
-      </div>
+      <dl class="incident-metrics" aria-label="Retry timing before the fix">
+        <div><dt>Observed delay</dt><dd>2 ms</dd></div>
+        <div><dt>Expected delay</dt><dd>2,000 ms</dd></div>
+      </dl>
     </section>
     <main class="workspace">
       <section class="pane terminal-pane" aria-labelledby="terminal-heading">
@@ -50,7 +50,7 @@
         <header class="pane-header tools-header">
           <div role="tablist" aria-label="Incident tools">
             <button id="tab-logs" role="tab" aria-controls="logs" aria-selected="true">Logs</button>
-            <button id="tab-kiro" role="tab" aria-controls="kiro" aria-selected="false" tabindex="-1">Kiro</button>
+            <button id="tab-kiro" class="live-only" role="tab" aria-controls="kiro" aria-selected="false" tabindex="-1">Kiro</button>
             <button id="tab-patch" role="tab" aria-controls="patch" aria-selected="false" tabindex="-1">Patch</button>
           </div>
           <span id="engine" role="status">Loading WASM</span>
@@ -86,9 +86,14 @@
           <pre id="response" class="output" tabindex="0" aria-label="Agent response" hidden></pre>
         </section>
         <section id="patch" class="tool-content" role="tabpanel" aria-labelledby="tab-patch" hidden>
-          <div class="section-heading"><div><h2 id="patch-heading">Patch review</h2><p id="patch-summary">Run the incident agent to prepare a patch.</p></div><span id="patch-changes" class="patch-changes" hidden></span></div>
-          <details id="diff-details" open hidden><summary>See code changes</summary><pre id="diff" class="output diff" tabindex="0" aria-label="Unified diff"></pre></details>
-          <div class="actions"><button id="apply" class="accent" disabled>Apply patch</button><button id="discard" disabled>Discard</button></div>
+          <div class="section-heading"><h2 id="patch-heading">Patch review</h2><span id="patch-changes" class="patch-changes" hidden></span></div>
+          <section id="sample-diagnosis" class="diagnosis demo-only" aria-labelledby="sample-diagnosis-label" hidden>
+            <h3 id="sample-diagnosis-label">Sample Kiro diagnosis</h3>
+            <p id="sample-diagnosis-text"></p>
+          </section>
+          <p id="patch-summary" class="feedback">Run the incident agent to prepare a patch.</p>
+          <details id="diff-details" open hidden><summary>View code change</summary><pre id="diff" class="output diff" tabindex="0" aria-label="Unified diff"></pre></details>
+          <div class="actions"><button id="apply" class="accent" disabled>Apply patch</button><button id="discard" class="live-only" disabled>Discard</button></div>
           <div id="patch-result" class="patch-result" hidden>
             <p id="patch-status" class="feedback" role="status"></p>
             <button id="verify-terminal" hidden></button>

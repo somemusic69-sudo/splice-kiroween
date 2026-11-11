@@ -6,7 +6,7 @@ At 2 a.m., an on-call developer has a retry storm to investigate. Splice lets th
 
 **Category** · Frankenstein
 
-**Try it.** Click **Review error logs** to open the filtered evidence from the recorded SSH incident. Review the sample diagnosis and diff, then click **Apply and test sample patch**. The browser runs the retry fixture and shows the delay change from **2 ms to 2,000 ms**. [Live demo](https://somemusic69-sudo.github.io/splice-kiroween/) · [Source and Windows setup](https://github.com/somemusic69-sudo/splice-kiroween)
+**Try it.** Open **The Retry Haunting** and click **Find the clues**. Follow the recorded SSH logs to Kiro’s sample explanation and click **Test the fix**. The browser runs the retry code and shows the delay change from **2 ms to 2,000 ms**. [Live demo](https://somemusic69-sudo.github.io/splice-kiroween/) · [Source and Windows setup](https://github.com/somemusic69-sudo/splice-kiroween)
 
 ## Kiro integration
 

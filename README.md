@@ -49,7 +49,7 @@ Set `sshConfig` to the absolute path of a dedicated OpenSSH config or `kiroExecu
 
 ## Judge build
 
-The [public demo](https://somemusic69-sudo.github.io/splice-kiroween/) opens on the recorded retry incident. Click **Review error logs** to prepare the excerpt, then review the sample diagnosis and patch. **Apply and test sample patch** applies the bundled diff in a browser worker and runs the retry code before and after the fix. **See terminal verification** takes you to the recorded post-fix SSH logs. The disposable fixture is the live SSH and Kiro test path.
+The [public demo](https://somemusic69-sudo.github.io/splice-kiroween/) opens on **The Retry Haunting**, a recorded retry incident. Click **Find the clues** to prepare the excerpt, then follow the tabs to the cause and the fix. **Test the fix** applies the bundled diff in a browser worker and runs the retry code before and after the repair. **See the server recover** takes you to the recorded post-fix SSH logs. The disposable fixture is the live SSH and Kiro test path.
 
 To publish, push the repository to a public GitHub repo with a `main` branch. In **Settings → Pages**, choose **GitHub Actions** as the source and run **Publish Splice demo**. The workflow builds the static app and reports the live URL in its deployment output.
 

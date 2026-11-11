@@ -21,6 +21,7 @@ const select = (id: string) => get<HTMLSelectElement>(id);
 const area = (id: string) => get<HTMLTextAreaElement>(id);
 const views: View[] = ['logs', 'kiro', 'patch'];
 const live = !!document.querySelector('meta[name="splice-local"]');
+const sampleIntro = 'A server keeps trying again too soon. Follow the clues, see what went wrong, and test the fix yourself.';
 let authenticated = false;
 let filterId = 0;
 let reviewFilterId = 0;
@@ -35,14 +36,33 @@ let lastTerminal: Record<string, string | number> | undefined;
 let reconnectTimer: number | undefined;
 
 document.body.classList.add(live ? 'live' : 'demo');
+input('pattern-mode').checked = live;
 get('mode').textContent = live ? 'Local workspace' : 'Sample workspace';
 get('agent-description').textContent = live
   ? 'Running Kiro sends the preview and question to the Kiro service. The agent can read your selected checkout.'
-  : 'Explore a sample diagnosis and patch for the retry incident.';
-button('run').textContent = live ? 'Run Kiro' : 'Show sample diagnosis';
-button('apply').textContent = live ? 'Apply patch' : 'Apply and test sample patch';
+  : 'Read Kiro’s sample explanation of why the server kept failing.';
+button('run').textContent = live ? 'Run Kiro' : 'Reveal the cause';
+button('apply').textContent = live ? 'Apply patch' : 'Test the fix';
 get('terminal-status').textContent = live ? 'Disconnected' : 'Recorded SSH logs';
-get('terminal-hint').textContent = live ? 'Select terminal output to inspect it.' : 'Disposable retry incident';
+get('terminal-hint').textContent = live ? 'Select terminal output to inspect it.' : 'Select any line to investigate it.';
+if (!live) {
+  get('engine').textContent = 'Loading log tools…';
+  get('engine').title = 'Log analysis runs in WebAssembly on this device.';
+  button('tab-logs').textContent = 'Clues';
+  button('tab-kiro').textContent = 'Cause';
+  button('tab-patch').textContent = 'Fix';
+  get('terminal-heading').textContent = 'Server replay';
+  get('logs').querySelector('h2')!.textContent = 'Follow the clues';
+  get('kiro').querySelector('h2')!.textContent = 'What went wrong?';
+  get('patch-heading').textContent = 'Try the repair';
+  get('excerpt-label').textContent = 'Clues for Kiro';
+  get('context-label').textContent = 'Clues to review';
+  area('excerpt').placeholder = 'Choose a message or use the matching lines. You can edit them here.';
+  button('use-filtered').textContent = 'Use matching lines';
+  button('review').textContent = 'Review clues';
+  button('edit-excerpt').textContent = 'Edit clues';
+  button('show-patch').textContent = 'Review the fix';
+}
 
 const terminal = new Terminal({
   fontFamily: 'Cascadia Mono, Consolas, monospace',
@@ -140,7 +160,7 @@ function renderResults(message: Report | { error: string }) {
 worker.onmessage = ({ data }) => {
   if (data.ready) {
     button('review-errors').disabled = false;
-    status('engine', 'WASM ready');
+    status('engine', live ? 'WASM ready' : 'Log tools ready');
   }
   else if (data.fatal) status('engine', data.fatal, true);
   else if (data.id === filterId) {
@@ -155,7 +175,9 @@ worker.onerror = () => status('engine', 'WASM unavailable', true);
 
 function filter(raw?: string) {
   button('use-filtered').disabled = true;
-  worker.postMessage({ id: ++filterId, raw, level: select('severity').value, pattern: input('query').value });
+  const query = input('query').value;
+  const pattern = input('pattern-mode').checked ? query : '(?i)' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  worker.postMessage({ id: ++filterId, raw, level: select('severity').value, pattern });
 }
 
 function loadLogs(raw: string, label: string, fromSample = false) {
@@ -165,8 +187,8 @@ function loadLogs(raw: string, label: string, fromSample = false) {
   }
   sampleInput = fromSample;
   if (!live) get('agent-description').textContent = fromSample
-    ? 'Explore a sample diagnosis and patch for the retry incident.'
-    : 'Your imported logs stay in this browser. Reset the sample to try its diagnosis.';
+    ? 'Read Kiro’s sample explanation of why the server kept failing.'
+    : 'Your imported logs stay in this browser. Start over to try the sample explanation.';
   status('log-source', label);
   filter(raw);
   setExcerpt('');
@@ -186,6 +208,7 @@ function syncRun() {
 }
 
 input('query').oninput = () => filter();
+input('pattern-mode').onchange = () => filter();
 select('severity').onchange = () => filter();
 input('import').onchange = async () => {
   const file = input('import').files?.[0];
@@ -244,7 +267,9 @@ function showPatch(patch?: Patch) {
   currentPatch = patch;
   const diff = get('diff');
   diff.replaceChildren();
-  diff.hidden = !patch;
+  const details = get<HTMLDetailsElement>('diff-details');
+  details.hidden = !patch;
+  details.open = live;
   let added = 0;
   let removed = 0;
   for (const line of patch?.diff.trimEnd().split('\n') ?? []) {
@@ -263,7 +288,9 @@ function showPatch(patch?: Patch) {
   }
   get('patch-changes').textContent = `+${added} / −${removed}`;
   get('patch-changes').hidden = !patch;
-  get('patch-summary').textContent = patch ? patch.files.join(', ') : 'Run the incident agent to prepare a patch.';
+  get('patch-summary').textContent = live
+    ? (patch ? patch.files.join(', ') : 'Run the incident agent to prepare a patch.')
+    : (patch ? 'Make the server wait two full seconds before trying again.' : 'Follow the clues to find a fix you can test.');
   button('apply').disabled = !patch;
   button('discard').disabled = !patch;
   button('show-patch').hidden = !patch;
@@ -277,8 +304,9 @@ function sample() {
   showPatch();
   get('response').hidden = true;
   sampleVerified = false;
-  status('incident-state', 'A worker exhausted its retry budget before the upstream service recovered.');
-  button('review-errors').textContent = 'Review error logs';
+  status('incident-state', sampleIntro);
+  button('review-errors').textContent = 'Find the clues';
+  input('pattern-mode').checked = false;
   status('agent-status', '');
   select('severity').value = '';
   input('query').value = '';
@@ -353,7 +381,6 @@ button('run').onclick = async () => {
   get('response').hidden = true;
   if (!live) {
     agentEvent({ type: 'text', text: sampleDiagnosis });
-    agentEvent({ type: 'status', text: 'Sample response ready.' });
     showPatch({ id: 'sample', diff: sampleDiff, files: ['retry.mjs'] });
     return;
   }
@@ -403,9 +430,9 @@ button('apply').onclick = async () => {
     if (live) {
       await post('apply', { id: patch.id });
     } else {
-      status('patch-status', 'Applying the sample diff and running the regression test…');
+      status('patch-status', 'Testing the repair in your browser…');
       const { before, after } = await verifySample();
-      result = `Regression passed. The retry delay changed from ${before} ms to ${after.toLocaleString('en-US')} ms.`;
+      result = `Test passed. The server now waits ${after.toLocaleString('en-US')} ms before retrying, up from ${before} ms.`;
       sampleVerified = true;
       status('incident-state', 'Verified fix · Retry delay changed from 2 ms to 2,000 ms.');
       button('review-errors').textContent = 'View fixed logs';
@@ -417,7 +444,7 @@ button('apply').onclick = async () => {
     button('show-patch').hidden = true;
     status('patch-status', result);
     get('patch-result').classList.add('verified');
-    button('verify-terminal').textContent = live ? 'Open PowerShell' : 'See terminal verification';
+    button('verify-terminal').textContent = live ? 'Open PowerShell' : 'See the server recover';
     button('verify-terminal').hidden = false;
   } catch (error) {
     status('patch-status', (error as Error).message, true);

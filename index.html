@@ -3,23 +3,27 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#161616">
-    <title>Splice — Incident cockpit</title>
+    <meta name="theme-color" content="#17121e">
+    <meta name="description" content="Follow a server mystery from the first clue to a tested fix in Splice, a Kiroween project.">
+    <title>Splice — The Retry Haunting</title>
   </head>
   <body>
     <header class="masthead">
-      <div class="brand"><span class="brand-mark" aria-hidden="true">&gt;_</span><h1>Splice</h1><span class="brand-detail">Incident cockpit</span></div>
-      <div class="header-actions"><a href="./setup.html">Local setup</a><span id="mode" class="mode">Starting</span></div>
+      <div class="brand"><span class="brand-mark" aria-hidden="true">&gt;_</span><h1>Splice</h1><span class="brand-detail demo-only">Kiroween demo</span><span class="brand-detail live-only">Incident cockpit</span></div>
+      <div class="header-actions"><a class="demo-only" href="https://github.com/somemusic69-sudo/splice-kiroween">GitHub</a><a href="./setup.html">Local setup</a><span id="mode" class="mode live-only">Starting</span></div>
     </header>
     <section class="incident-bar demo-only" aria-labelledby="incident-title">
-      <div>
-        <h2 id="incident-title">The retry storm</h2>
-        <p id="incident-state">A worker exhausted its retry budget before the upstream service recovered.</p>
+      <div class="incident-copy">
+        <h2 id="incident-title">The Retry Haunting</h2>
+        <p id="incident-state">A server keeps trying again too soon. Follow the clues, see what went wrong, and test the fix yourself.</p>
+        <div class="actions">
+          <button id="review-errors" class="accent" disabled>Find the clues</button>
+          <button id="sample" class="quiet">Start over</button>
+        </div>
       </div>
-      <div class="actions">
-        <button id="review-errors" class="accent" disabled>Review error logs</button>
-        <a class="jump-link" href="#terminal-heading">Terminal replay</a>
-        <button id="sample">Reset sample incident</button>
+      <div class="haunting-art" aria-hidden="true">
+        <span class="moon"></span><span class="spark spark-one"></span><span class="spark spark-two"></span>
+        <span class="lantern"><span class="stalk"></span><span class="gourd"><span class="lantern-face"></span></span></span>
       </div>
     </section>
     <main class="workspace">
@@ -57,13 +61,17 @@
             <label class="button import">Import log<input id="import" type="file" accept=".log,.txt,.jsonl,.ndjson,text/plain"></label>
           </div>
           <div class="filters">
-            <label>Severity<select id="severity"><option value="">All levels</option><option>ERROR</option><option>WARN</option><option>INFO</option><option>DEBUG</option><option>TRACE</option><option>UNKNOWN</option></select></label>
-            <label>Regex<input id="query" type="search" placeholder="Filter by pattern" maxlength="512" spellcheck="false"></label>
+            <label>Log level<select id="severity"><option value="">All levels</option><option>ERROR</option><option>WARN</option><option>INFO</option><option>DEBUG</option><option>TRACE</option><option>UNKNOWN</option></select></label>
+            <div class="search-controls">
+              <label for="query">Search logs</label>
+              <label class="pattern-control"><input id="pattern-mode" type="checkbox"> Use regex</label>
+              <input id="query" type="search" placeholder="Search by word or phrase" maxlength="512" spellcheck="false">
+            </div>
           </div>
           <div class="results-heading"><h3>Messages</h3><span id="log-count" role="status">0 matches</span></div>
           <div id="log-results" class="log-results"><p class="empty">Matching messages will appear here.</p></div>
           <div class="excerpt">
-            <label for="excerpt">Excerpt for Kiro</label>
+            <label id="excerpt-label" for="excerpt">Excerpt for Kiro</label>
             <textarea id="excerpt" rows="4" maxlength="16000" spellcheck="false" placeholder="Select a message or add the filtered lines. Edit out anything you don’t want to share."></textarea>
             <div class="actions"><button id="use-filtered" disabled>Use filtered lines</button><button id="review" class="accent" disabled>Review for Kiro</button></div>
           </div>
@@ -71,15 +79,15 @@
         <section id="kiro" class="tool-content" role="tabpanel" aria-labelledby="tab-kiro" hidden>
           <div class="section-heading"><div><h2>Incident agent</h2><p id="agent-description"></p></div></div>
           <p id="agent-files" class="live-only feedback" hidden></p>
-          <label class="field">Context preview<textarea id="context" rows="5" readonly spellcheck="false"></textarea></label>
+          <label class="field"><span id="context-label">Context preview</span><textarea id="context" rows="5" readonly spellcheck="false"></textarea></label>
           <label class="live-only field">Question<input id="question" value="Diagnose the incident and propose the smallest fix." maxlength="1000"></label>
           <div class="actions"><button id="run" class="accent">Run Kiro</button><button id="cancel" hidden>Cancel</button><button id="show-patch" class="accent" hidden>Review patch</button><button id="edit-excerpt">Edit excerpt</button></div>
           <p id="agent-status" class="feedback" role="status" hidden></p>
           <pre id="response" class="output" tabindex="0" aria-label="Agent response" hidden></pre>
         </section>
         <section id="patch" class="tool-content" role="tabpanel" aria-labelledby="tab-patch" hidden>
-          <div class="section-heading"><div><h2>Patch review</h2><p id="patch-summary">Run the incident agent to prepare a patch.</p></div><span id="patch-changes" class="patch-changes" hidden></span></div>
-          <pre id="diff" class="output diff" tabindex="0" aria-label="Unified diff" hidden></pre>
+          <div class="section-heading"><div><h2 id="patch-heading">Patch review</h2><p id="patch-summary">Run the incident agent to prepare a patch.</p></div><span id="patch-changes" class="patch-changes" hidden></span></div>
+          <details id="diff-details" open hidden><summary>See code changes</summary><pre id="diff" class="output diff" tabindex="0" aria-label="Unified diff"></pre></details>
           <div class="actions"><button id="apply" class="accent" disabled>Apply patch</button><button id="discard" disabled>Discard</button></div>
           <div id="patch-result" class="patch-result" hidden>
             <p id="patch-status" class="feedback" role="status"></p>

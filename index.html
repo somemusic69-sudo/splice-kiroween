@@ -5,22 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#171819">
     <meta name="description" content="Splice helps on-call developers turn server errors into a tested fix without leaving one workspace.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Splice — from server error to tested fix in one tab">
+    <meta property="og:description" content="A Kiroween Frankenstein: SSH and tmux, Rust WebAssembly log tools, and a Kiro CLI agent stitched into one local incident cockpit.">
+    <meta property="og:url" content="https://somemusic69-sudo.github.io/splice-kiroween/">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='5' fill='%23171819'/%3E%3Cpath d='M7 10l6 6-6 6' stroke='%23e2a57e' stroke-width='3' fill='none'/%3E%3Cpath d='M15 23h10' stroke='%23e2a57e' stroke-width='3' stroke-dasharray='3 2'/%3E%3C/svg%3E">
     <title>Splice — Incident response workspace</title>
   </head>
   <body>
     <header class="masthead">
       <div class="brand"><span class="brand-mark" aria-hidden="true">&gt;_</span><h1>Splice</h1><span class="brand-detail demo-only">Kiroween demo</span><span class="brand-detail live-only">Incident cockpit</span></div>
-      <div class="header-actions"><a href="https://github.com/somemusic69-sudo/splice-kiroween">GitHub</a><a href="./setup.html">Local setup</a><span id="mode" class="mode live-only">Starting</span></div>
+      <div class="header-actions"><a class="demo-only" href="https://github.com/somemusic69-sudo/splice-kiroween/tree/main/.kiro">Built with Kiro</a><a href="https://github.com/somemusic69-sudo/splice-kiroween">GitHub</a><a href="./setup.html">Local setup</a><span id="mode" class="mode live-only">Starting</span></div>
     </header>
     <section class="incident-bar demo-only" aria-labelledby="incident-title">
       <div>
+        <p class="pitch">For on-call developers: go from a server error to a tested fix in one tab.</p>
+        <ul class="stack" aria-label="What Splice stitches together">
+          <li>SSH + tmux terminal</li>
+          <li>Rust → WebAssembly log tools</li>
+          <li>Kiro CLI incident agent</li>
+        </ul>
         <h2 id="incident-title">Retry delay incident</h2>
-        <p>Follow recorded server logs through browser analysis, a sample Kiro diagnosis, and a tested fix.</p>
-        <p class="incident-context">Splice connects SSH and tmux, WebAssembly log tools, and Kiro CLI in a local workspace.</p>
+        <p>A worker retries after 2 ms, but the upstream needs 2,000 ms. Follow the recorded logs to a tested fix.</p>
       </div>
-      <div class="actions">
-        <button id="review-errors" class="accent" disabled>Review errors</button>
-        <button id="sample" class="quiet">Reset demo</button>
+      <div class="incident-side">
+        <ol class="steps" aria-label="Demo steps">
+          <li data-step="review">Review errors</li>
+          <li data-step="diagnose">Read diagnosis</li>
+          <li data-step="test">Test fix</li>
+          <li data-step="done">See recovery</li>
+        </ol>
+        <div class="actions">
+          <button id="review-errors" class="accent" disabled>Review errors</button>
+          <button id="sample" class="quiet">Reset demo</button>
+        </div>
       </div>
     </section>
     <main class="workspace">
@@ -51,6 +69,7 @@
           <span id="recovery-hint">Available after testing the fix</span>
         </div>
         <div id="terminal"></div>
+        <div class="tmux-status demo-only" aria-hidden="true"><span>[splice] 0:incident*</span><span>ssh splice-fixture</span></div>
         <footer class="terminal-footer">
           <span id="terminal-hint"></span>
           <button id="capture" disabled>Send selection to Logs</button>

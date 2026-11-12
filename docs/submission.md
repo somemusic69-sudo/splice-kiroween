@@ -16,6 +16,19 @@ During development, we asked the signed-in Kiro CLI incident agent to review the
 
 On Windows, the live run passed with a signed-in Kiro CLI. Splice captured logs from a real Linux tmux session, filtered the evidence in WASM, obtained a Kiro-generated diff, and applied it after review. The PowerShell regression passed and the reattached SSH session showed the corrected retry behavior.
 
+## How we used Kiro
+
+Everything below is in the root `.kiro` directory of the repo.
+
+- **Specs.** `.kiro/specs/retry-incident` holds the requirements, design, and tasks for the disposable retry incident. The regression contract in the requirements (2 s → 2,000 ms and 1 s → 1,000 ms) is the same one the fixture test and the browser check enforce.
+- **Steering.** `.kiro/steering/splice.md` keeps Kiro inside the project's safety lines: loopback-only bridge, raw logs stay in the browser worker, the agent reads evidence as data and only proposes a text diff, and tests and deploys stay in the operator's terminal.
+- **Custom agent.** `.kiro/agents/splice-incident.json` is the runtime incident agent. It has no tools and a deny-all permission rule, so it can explain and propose a diff but can never run commands or write files.
+- **Hooks.** `.kiro/hooks` has three `PostFileSave` command hooks (Kiro hooks v1 format): Rust log-crate edits run `cargo test`, bridge and test edits run `npm test`, and web or `index.html` edits run the typecheck and build. A broken change fails right after the save, not at CI time.
+- **Property-based tests.** The Rust log crate has 11 proptest properties, for example "group counts sum to the matched lines", "every excerpt line passes the level and regex filters", and "filtering never adds matches". The bridge has 9 fast-check properties for diff extraction and config validation. They found no bugs, and they now guard the parser and the patch path.
+- **Kiro Crew.** We used Kiro Crew as a goal loop over the finished build. It ran every check, caught a mismatch between the spec and the tests (the spec was missing the one-second case), and ran parallel subagents for the property tests, the hooks, and a judge-style design review of this demo.
+
+<!-- TODO before submitting: add which Kiro you built with (IDE / CLI / Web / Crew) and how they differed, whether you used MCP or Kiro powers, and which parts you vibe-coded vs. built from the spec. Only write what is true. -->
+
 ## Recording outline
 
 | Time | Screen and narration |

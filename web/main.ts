@@ -52,6 +52,7 @@ if (!live) {
   area('excerpt').placeholder = 'Choose a message or use the matching lines to prepare an excerpt.';
   button('use-filtered').textContent = 'Use matching lines';
   button('review').textContent = 'View diagnosis';
+  setStep('review');
 
   const workspace = document.querySelector('.workspace')!;
   const toolsPane = document.querySelector('.tools-pane')!;
@@ -77,6 +78,10 @@ terminal.loadAddon(fit);
 terminal.open(get('terminal'));
 if (live) terminal.writeln('Attach to an SSH target or open a local PowerShell session.');
 new ResizeObserver(() => fit.fit()).observe(get('terminal'));
+
+function setStep(step: 'review' | 'diagnose' | 'test' | 'done') {
+  document.body.dataset.step = step;
+}
 
 function activate(view: View, focus = false) {
   for (const item of views) {
@@ -229,7 +234,10 @@ button('review').onclick = () => {
     activate('kiro', true);
     return;
   }
-  if (!sampleVerified) showPatch({ id: 'sample', diff: sampleDiff, files: ['retry.mjs'] });
+  if (!sampleVerified) {
+    showPatch({ id: 'sample', diff: sampleDiff, files: ['retry.mjs'] });
+    setStep('test');
+  }
   activate('patch', true);
 };
 button('show-patch').onclick = () => activate('patch', true);
@@ -266,6 +274,7 @@ button('review-errors').onclick = () => {
   input('pattern-mode').checked = false;
   reviewFilterId = filterId + 1;
   loadLogs(sampleLogs, 'retry-worker.log', true);
+  setStep('diagnose');
 };
 
 function showPatch(patch?: Patch) {
@@ -316,6 +325,7 @@ function sample() {
   input('query').value = '';
   replaySample(false);
   loadLogs(sampleLogs, 'retry-worker.log', true);
+  setStep('review');
 }
 
 function replaySample(recovery: boolean) {
@@ -445,6 +455,7 @@ button('apply').onclick = async () => {
       const { before, after } = await verifySample();
       result = `Test passed · ${before} ms → ${after.toLocaleString('en-US')} ms`;
       sampleVerified = true;
+      setStep('done');
       replaySample(true);
     }
     currentPatch = undefined;

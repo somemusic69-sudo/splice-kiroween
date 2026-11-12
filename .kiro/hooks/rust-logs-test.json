@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "rust-logs-test",
+      "description": "Run the splice-logs crate tests after the agent edits a Rust source file in crates/logs/src.",
+      "trigger": "PostFileSave",
+      "matcher": "crates[\\\\/]logs[\\\\/]src[\\\\/].*\\.rs$",
+      "action": {
+        "type": "command",
+        "command": "cargo test --manifest-path crates/logs/Cargo.toml --quiet"
+      },
+      "timeout": 300
+    }
+  ]
+}

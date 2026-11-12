@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "web-build",
+      "description": "Run npm run build (tsc --noEmit && vite build) after the agent edits web TypeScript, CSS, or index.html. Generated files under web/wasm are excluded.",
+      "trigger": "PostFileSave",
+      "matcher": "(web[\\\\/][^\\\\/]+\\.(ts|css)|(^|[\\\\/])index\\.html)$",
+      "action": {
+        "type": "command",
+        "command": "npm run build"
+      },
+      "timeout": 180
+    }
+  ]
+}

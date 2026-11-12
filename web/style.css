@@ -84,6 +84,52 @@ textarea { resize: vertical; font-family: var(--mono); }
 @media (prefers-reduced-motion: no-preference) {
   .steps li { transition: background-color .25s, color .25s, border-color .25s; }
 }
+
+/* Kiroween night: fog, bats, and Sparky the guide ghost (demo only, decorative). */
+.demo { --amber: #ff9a3d; --surface: #1b1724; --inset: #14111b; --rule: #3a3150; --muted: #c0b6d2; background: #0f0c15; }
+.demo .accent:hover:enabled { background: #ffb36b; }
+.demo .masthead, .demo .incident-bar, .demo .workspace { position: relative; z-index: 1; }
+.night { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.fog { position: absolute; bottom: -40px; left: 0; width: 200%; height: 180px; opacity: .55;
+  background: radial-gradient(ellipse 22% 60% at 15% 60%, #7d6aa833, transparent 70%), radial-gradient(ellipse 25% 55% at 45% 50%, #7d6aa82b, transparent 70%),
+    radial-gradient(ellipse 22% 60% at 65% 60%, #7d6aa833, transparent 70%), radial-gradient(ellipse 25% 55% at 95% 50%, #7d6aa82b, transparent 70%); }
+.bat { position: absolute; top: 96px; left: -40px; font-size: 20px; opacity: .5; filter: grayscale(1) brightness(1.5); }
+.bat-late { top: 150px; font-size: 14px; }
+.sparky { position: fixed; top: 0; left: 0; z-index: 20; width: 76px; pointer-events: none; transform: translate(-120px, 40vh); }
+.sparky-pet svg { display: block; width: 100%; filter: drop-shadow(0 0 14px #c9b6ff66); }
+.sparky-body { fill: #efe6ff; }
+.sparky-stitch { stroke: #6b5a8a; stroke-width: 2; fill: none; }
+.sparky-bolt { stroke: var(--amber); stroke-width: 3.5; fill: none; stroke-linecap: round; }
+.sparky-eye { fill: #1a1326; transform-box: fill-box; transform-origin: center; }
+.sparky-mouth { stroke: #1a1326; stroke-width: 3; fill: none; stroke-linecap: round; }
+.sparky-bubble { position: absolute; top: 8px; right: calc(100% + 10px); width: max-content; max-width: 200px; padding: 7px 10px; border-radius: 10px; background: #efe6ff; color: #1a1326; font-size: 12px; font-weight: 600; line-height: 1.35; box-shadow: 0 6px 18px #0008; }
+.sparky-bubble::after { content: ''; position: absolute; top: 12px; left: 100%; border: 6px solid transparent; border-left-color: #efe6ff; }
+.sparky-flash { position: fixed; inset: 0; z-index: 30; background: #eef4ff; opacity: 0; pointer-events: none; }
+.sparky.docked { top: auto; left: auto; right: 6px; bottom: 6px; width: 44px; transform: none; opacity: .92; }
+.sparky.docked .sparky-bubble { display: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .fog { animation: fog-drift 26s linear infinite; }
+  .fog-slow { animation-duration: 41s; opacity: .4; bottom: -70px; }
+  .bat { animation: bat-fly 13s linear infinite; }
+  .bat-late { animation-delay: 6s; animation-duration: 17s; }
+  .sparky { transition: transform .9s cubic-bezier(.34, 1.3, .5, 1); }
+  .sparky-pet { animation: sparky-bob 2.6s ease-in-out infinite; }
+  .sparky[data-mood=scared] .sparky-pet svg { animation: sparky-shake .16s linear infinite; }
+  .sparky[data-mood=thinking] .sparky-pet svg { animation: sparky-tilt 1.8s ease-in-out infinite; }
+  .sparky[data-mood=happy] .sparky-pet svg { animation: sparky-hop .55s ease-out 4; }
+  .sparky-bolt { animation: bolt-flicker 3.2s steps(1) infinite; }
+  .sparky-eye { animation: sparky-blink 4.5s infinite; }
+  .sparky-bubble { animation: bubble-pop .35s ease-out; }
+}
+@keyframes fog-drift { to { transform: translateX(-50%); } }
+@keyframes bat-fly { 0% { transform: translate(0, 0); } 20% { transform: translate(22vw, -18px); } 45% { transform: translate(48vw, 14px); } 70% { transform: translate(74vw, -10px); } 100% { transform: translate(110vw, -30px); } }
+@keyframes sparky-bob { 50% { transform: translateY(-9px); } }
+@keyframes sparky-shake { 25% { transform: translateX(-3px) rotate(-2deg); } 75% { transform: translateX(3px) rotate(2deg); } }
+@keyframes sparky-tilt { 50% { transform: rotate(-8deg); } }
+@keyframes sparky-hop { 50% { transform: translateY(-24px) rotate(-6deg) scale(1.06); } }
+@keyframes bolt-flicker { 0%, 88%, 94% { opacity: 1; } 90%, 97% { opacity: .2; } }
+@keyframes sparky-blink { 0%, 94%, 100% { transform: scaleY(1); } 97% { transform: scaleY(.1); } }
+@keyframes bubble-pop { from { opacity: 0; transform: translateX(-50%) translateY(6px) scale(.92); } }
 .quiet { background: transparent; color: var(--muted); }
 
 .workspace { display: grid; grid-template-columns: minmax(0, 1.18fr) minmax(0, 1fr); gap: 14px; padding: 12px 24px 24px; max-width: 1800px; margin: auto; }

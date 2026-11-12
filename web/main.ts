@@ -3,6 +3,7 @@ import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
 import './style.css';
 import { sampleDiagnosis, sampleDiff, sampleLogs, sampleVerification } from './sample';
+import { sparky, type Step } from './sparky';
 
 type Target = { id: string; label: string; agentFiles?: string[] };
 type Group = { level: string; message: string; sample: string; count: number };
@@ -79,8 +80,9 @@ terminal.open(get('terminal'));
 if (live) terminal.writeln('Attach to an SSH target or open a local PowerShell session.');
 new ResizeObserver(() => fit.fit()).observe(get('terminal'));
 
-function setStep(step: 'review' | 'diagnose' | 'test' | 'done') {
+function setStep(step: Step) {
   document.body.dataset.step = step;
+  if (!live) sparky(step);
 }
 
 function activate(view: View, focus = false) {
@@ -455,7 +457,6 @@ button('apply').onclick = async () => {
       const { before, after } = await verifySample();
       result = `Test passed · ${before} ms → ${after.toLocaleString('en-US')} ms`;
       sampleVerified = true;
-      setStep('done');
       replaySample(true);
     }
     currentPatch = undefined;
@@ -464,6 +465,7 @@ button('apply').onclick = async () => {
     get('patch-result').classList.add('verified');
     button('verify-terminal').textContent = live ? 'Open PowerShell' : 'View recovery logs';
     button('verify-terminal').hidden = false;
+    if (!live) setStep('done');
   } catch (error) {
     status('patch-status', (error as Error).message, true);
     button('apply').disabled = false;

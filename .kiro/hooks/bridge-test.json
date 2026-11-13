@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "bridge-test",
+      "description": "Run npm test (node --test tests/bridge.test.mjs) after the agent edits a bridge module or a top-level test file.",
+      "trigger": "PostFileSave",
+      "matcher": "(bridge[\\\\/].*|tests[\\\\/][^\\\\/]+)\\.mjs$",
+      "action": {
+        "type": "command",
+        "command": "npm test"
+      },
+      "timeout": 120
+    }
+  ]
+}

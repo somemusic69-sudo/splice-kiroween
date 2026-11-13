@@ -3,6 +3,7 @@ import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
 import './style.css';
 import { sampleDiagnosis, sampleDiff, sampleLogs, sampleVerification } from './sample';
+import { sparky, type Step } from './sparky';
 
 type Target = { id: string; label: string; agentFiles?: string[] };
 type Group = { level: string; message: string; sample: string; count: number };
@@ -52,6 +53,7 @@ if (!live) {
   area('excerpt').placeholder = 'Choose a message or use the matching lines to prepare an excerpt.';
   button('use-filtered').textContent = 'Use matching lines';
   button('review').textContent = 'View diagnosis';
+  setStep('review');
 
   const workspace = document.querySelector('.workspace')!;
   const toolsPane = document.querySelector('.tools-pane')!;
@@ -77,6 +79,11 @@ terminal.loadAddon(fit);
 terminal.open(get('terminal'));
 if (live) terminal.writeln('Attach to an SSH target or open a local PowerShell session.');
 new ResizeObserver(() => fit.fit()).observe(get('terminal'));
+
+function setStep(step: Step) {
+  document.body.dataset.step = step;
+  if (!live) sparky(step);
+}
 
 function activate(view: View, focus = false) {
   for (const item of views) {
@@ -229,7 +236,10 @@ button('review').onclick = () => {
     activate('kiro', true);
     return;
   }
-  if (!sampleVerified) showPatch({ id: 'sample', diff: sampleDiff, files: ['retry.mjs'] });
+  if (!sampleVerified) {
+    showPatch({ id: 'sample', diff: sampleDiff, files: ['retry.mjs'] });
+    setStep('test');
+  }
   activate('patch', true);
 };
 button('show-patch').onclick = () => activate('patch', true);
@@ -266,6 +276,7 @@ button('review-errors').onclick = () => {
   input('pattern-mode').checked = false;
   reviewFilterId = filterId + 1;
   loadLogs(sampleLogs, 'retry-worker.log', true);
+  setStep('diagnose');
 };
 
 function showPatch(patch?: Patch) {
@@ -316,6 +327,7 @@ function sample() {
   input('query').value = '';
   replaySample(false);
   loadLogs(sampleLogs, 'retry-worker.log', true);
+  setStep('review');
 }
 
 function replaySample(recovery: boolean) {
@@ -453,6 +465,7 @@ button('apply').onclick = async () => {
     get('patch-result').classList.add('verified');
     button('verify-terminal').textContent = live ? 'Open PowerShell' : 'View recovery logs';
     button('verify-terminal').hidden = false;
+    if (!live) setStep('done');
   } catch (error) {
     status('patch-status', (error as Error).message, true);
     button('apply').disabled = false;

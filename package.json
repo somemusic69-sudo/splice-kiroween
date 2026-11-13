@@ -11,7 +11,8 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "start": "node bridge/server.mjs",
-    "test": "node --test tests/bridge.test.mjs",
+    "test": "node --test tests/bridge.test.mjs tests/property.test.mjs",
+    "test:property": "node --test tests/property.test.mjs",
     "test:browser": "playwright test"
   },
   "dependencies": {
@@ -23,6 +24,7 @@
   },
   "devDependencies": {
     "@playwright/test": "1.56.1",
+    "fast-check": "4.10.2",
     "typescript": "5.9.3",
     "vite": "7.3.8",
     "wasm-pack": "0.15.1"

@@ -20,6 +20,7 @@
     <section class="incident-bar demo-only" aria-labelledby="incident-title">
       <div>
         <p class="pitch">For on-call developers: go from a server error to a tested fix in one tab.</p>
+        <p class="provenance"><span class="prov prov-recorded">Recorded demo</span><span class="prov prov-live">Real workflow: local Kiro CLI + SSH</span></p>
         <ul class="stack" aria-label="What Splice stitches together">
           <li>SSH + tmux terminal</li>
           <li>Rust → WebAssembly log tools</li>
@@ -35,6 +36,7 @@
           <li data-step="test">Test fix</li>
           <li data-step="done">See recovery</li>
         </ol>
+        <p id="next-action" class="next-action" aria-live="polite"></p>
         <div class="actions">
           <button id="review-errors" class="accent" disabled>Review errors</button>
           <button id="sample" class="quiet">Reset demo</button>
@@ -57,6 +59,7 @@
         <div class="checkout-bar live-only"><label for="checkout">Git checkout</label><select id="checkout"></select></div>
         <section id="retry-timing" class="retry-timing demo-only" aria-labelledby="timing-heading">
           <h3 id="timing-heading">Retry delay vs. upstream cooldown</h3>
+          <p class="timing-caption">The worker retries after 2 ms while the upstream needs 2,000 ms. The units are off by a factor of 1,000.</p>
           <dl class="timing-rows">
             <div class="timing-row"><dt id="retry-track-label">Original retry</dt><dd id="retry-track-value">2 ms</dd><span class="timing-track retry-track" aria-hidden="true"><span id="retry-marker"></span></span></div>
             <div class="timing-row"><dt>Cooldown</dt><dd>2,000 ms</dd><span class="timing-track cooldown-track" aria-hidden="true"></span></div>
@@ -119,8 +122,8 @@
         <section id="patch" class="tool-content" role="tabpanel" aria-labelledby="tab-patch" hidden>
           <div class="section-heading"><h2 id="patch-heading">Patch review</h2><span id="patch-changes" class="patch-changes" hidden></span></div>
           <section id="sample-diagnosis" class="diagnosis demo-only" aria-labelledby="sample-diagnosis-label" hidden>
-            <h3 id="sample-diagnosis-label">Sample Kiro diagnosis</h3>
-            <p class="diagnosis-note">This example is prepared in advance. The local workspace connects to Kiro CLI.</p>
+            <h3 id="sample-diagnosis-label">Sample Kiro diagnosis <span class="badge badge-prepared">Prepared in advance</span></h3>
+            <p class="diagnosis-note">The local workspace uses the Kiro CLI for live responses.</p>
             <p id="sample-diagnosis-text"></p>
           </section>
           <p id="patch-summary" class="feedback">Run the incident agent to prepare a patch.</p>

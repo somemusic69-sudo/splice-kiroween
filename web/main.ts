@@ -3,7 +3,7 @@ import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
 import './style.css';
 import { sampleDiagnosis, sampleDiff, sampleLogs, sampleVerification } from './sample';
-import { sparky, type Step } from './sparky';
+type Step = 'review' | 'diagnose' | 'test' | 'done';
 
 type Target = { id: string; label: string; agentFiles?: string[] };
 type Group = { level: string; message: string; sample: string; count: number };
@@ -82,7 +82,13 @@ new ResizeObserver(() => fit.fit()).observe(get('terminal'));
 
 function setStep(step: Step) {
   document.body.dataset.step = step;
-  if (!live) sparky(step);
+  const next = document.getElementById('next-action');
+  if (next) next.textContent = ({
+    review: 'Next: Review the incident to see repeated errors and timing warnings.',
+    diagnose: 'Next: Select View diagnosis to open the prepared explanation.',
+    test: 'Next: Run Test fix to check the corrected 2,000 ms delay.',
+    done: 'Next: Open Recovery run to inspect the corrected logs.',
+  } satisfies Record<Step, string>)[step];
 }
 
 function activate(view: View, focus = false) {
@@ -271,7 +277,7 @@ function focusTerminal() {
 }
 
 button('review-errors').onclick = () => {
-  select('severity').value = 'ERROR';
+  select('severity').value = '';
   input('query').value = '';
   input('pattern-mode').checked = false;
   reviewFilterId = filterId + 1;
